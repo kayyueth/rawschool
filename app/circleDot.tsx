@@ -10,13 +10,18 @@ const Sketch = dynamic(() => import("react-p5"), {
 interface CircleDotProps {
   radius: number;
   dotSpeed: number;
+  text?: string;
 }
 
-export default function CircleDot({ radius, dotSpeed }: CircleDotProps) {
+export default function CircleDot({
+  radius,
+  dotSpeed,
+  text = "TEXT",
+}: CircleDotProps) {
   let angle = 0;
 
   const setup = (p5: any, canvasParentRef: any) => {
-    p5.createCanvas(800, 800).parent(canvasParentRef);
+    p5.createCanvas(1000, 1000).parent(canvasParentRef);
   };
 
   const draw = (p5: any) => {
@@ -26,16 +31,33 @@ export default function CircleDot({ radius, dotSpeed }: CircleDotProps) {
     // circle
     p5.noFill();
     p5.stroke(0);
-    p5.ellipse(0, 0, radius * 2, radius * 2); // circle
+    p5.ellipse(0, 0, radius * 2, radius * 2);
 
-    // dot
+    // 先绘制文本和背景
+    p5.textAlign(p5.CENTER, p5.CENTER);
+    p5.textSize(12);
+
+    // 上部文本背景
+    p5.fill(255);
+    p5.noStroke();
+    p5.rect(-30, -radius - 10, 60, 20);
+
+    // 下部文本背景
+    p5.rect(-30, radius - 10, 60, 20);
+
+    // 绘制文本
+    p5.fill(0);
+    p5.text(text, 0, -radius);
+    p5.text(text, 0, radius);
+
+    // 最后绘制 dot，确保它在最上层
     const x = radius * Math.cos(angle);
     const y = radius * Math.sin(angle);
-    p5.fill(0, 0, 0); // dot color
+    p5.fill(0, 0, 0);
     p5.noStroke();
-    p5.ellipse(x, y, 10, 10); // dot size
+    p5.ellipse(x, y, 10, 10);
 
-    angle += dotSpeed; // dot speed
+    angle += dotSpeed;
   };
 
   return (

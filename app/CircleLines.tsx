@@ -19,7 +19,7 @@ export default function CircleLines({
   segments,
 }: CircleLinesProps) {
   const setup = (p5: any, canvasParentRef: any) => {
-    p5.createCanvas(800, 800).parent(canvasParentRef);
+    p5.createCanvas(1000, 1000).parent(canvasParentRef);
   };
 
   const draw = (p5: any) => {

@@ -19,7 +19,7 @@ export default function CircleExternal({
   textSize = 14,
 }: CircleExternalProps) {
   const setup = (p5: any, canvasParentRef: any) => {
-    p5.createCanvas(800, 800).parent(canvasParentRef);
+    p5.createCanvas(1000, 1000).parent(canvasParentRef);
   };
 
   const draw = (p5: any) => {
@@ -27,28 +27,35 @@ export default function CircleExternal({
     p5.translate(p5.width / 2, p5.height / 2);
     p5.textSize(textSize);
     p5.textFont("Roboto");
-    p5.textStyle(p5.BOLD);
-    p5.textAlign(p5.CENTER, p5.CENTER);
+    p5.textStyle(p5.NORMAL);
 
     const segmentAngle = (2 * Math.PI) / text.length;
 
     // text and underline
-    text.forEach((text, i) => {
+    text.forEach((textContent, i) => {
       const angle = i * segmentAngle;
       const x = radius * Math.cos(angle);
       const y = radius * Math.sin(angle);
+
       p5.push();
       p5.translate(x, y);
 
       if (x < 0) {
         p5.rotate(angle + Math.PI);
+        p5.textAlign(p5.RIGHT, p5.CENTER); // 左侧文本左对齐
+        const lines = textContent.match(/.{1,30}/g) || [textContent];
+        lines.forEach((line, index) => {
+          p5.text(line, 0, index * textSize);
+        });
       } else {
-        p5.rotate(angle + Math.PI * 2);
+        p5.rotate(angle);
+        p5.textAlign(p5.LEFT, p5.CENTER); // 右侧文本右对齐
+        const lines = textContent.match(/.{1,30}/g) || [textContent];
+        lines.forEach((line, index) => {
+          p5.text(line, 0, index * textSize);
+        });
       }
 
-      // Draw text
-      p5.noStroke();
-      p5.text(text, 0, 0);
       p5.pop();
     });
   };
