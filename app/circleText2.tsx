@@ -16,7 +16,7 @@ interface CircleExternalProps {
 export default function CircleExternal({
   radius,
   text,
-  textSize = 14,
+  textSize = 12,
 }: CircleExternalProps) {
   const setup = (p5: any, canvasParentRef: any) => {
     p5.createCanvas(1000, 1000).parent(canvasParentRef);
@@ -43,14 +43,14 @@ export default function CircleExternal({
       if (x < 0) {
         p5.rotate(angle + Math.PI);
         p5.textAlign(p5.RIGHT, p5.CENTER); // 左侧文本左对齐
-        const lines = textContent.match(/.{1,30}/g) || [textContent];
+        const lines = textContent.match(/.{1,21}/g) || [textContent];
         lines.forEach((line, index) => {
           p5.text(line, 0, index * textSize);
         });
       } else {
         p5.rotate(angle);
         p5.textAlign(p5.LEFT, p5.CENTER); // 右侧文本右对齐
-        const lines = textContent.match(/.{1,30}/g) || [textContent];
+        const lines = textContent.match(/.{1,21}/g) || [textContent];
         lines.forEach((line, index) => {
           p5.text(line, 0, index * textSize);
         });
