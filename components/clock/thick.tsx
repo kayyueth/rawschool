@@ -12,7 +12,7 @@ interface CircleTextProps {
   texts: string[];
 }
 
-export default function CircleThick({ radius, texts }: CircleTextProps) {
+export default function Thick({ radius, texts }: CircleTextProps) {
   const segmentCount = texts.length;
 
   const setup = (p5: any, canvasParentRef: any) => {

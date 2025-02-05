@@ -13,7 +13,7 @@ interface CircleDotProps {
   text?: string;
 }
 
-export default function CircleDot({
+export default function Dot({
   radius,
   dotSpeed,
   text = "TEXT",

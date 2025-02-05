@@ -13,7 +13,7 @@ interface CircleExternalProps {
   textSize?: number;
 }
 
-export default function CircleExternal({
+export default function Name({
   radius,
   text,
   textSize = 14,

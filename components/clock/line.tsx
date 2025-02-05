@@ -13,7 +13,7 @@ interface CircleLinesProps {
   segments: number;
 }
 
-export default function CircleLines({
+export default function Line({
   startRadius,
   endRadius,
   segments,
