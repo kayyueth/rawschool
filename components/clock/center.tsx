@@ -22,7 +22,7 @@ export default function Center({ radius, text }: CenterProps) {
     p5.translate(p5.width / 2, p5.height / 2);
 
     // 先画一个填充的白色圆形
-    p5.fill(255);
+    p5.fill(252, 250, 222);
     p5.ellipse(0, 0, radius * 2, radius * 2);
 
     // 文字设置

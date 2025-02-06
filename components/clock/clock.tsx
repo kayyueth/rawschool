@@ -10,7 +10,7 @@ import { text1, text2, text3 } from "./text";
 
 export default function Clock() {
   return (
-    <div style={{ position: "relative", width: "400px", height: "400px" }}>
+    <div style={{ position: "relative", width: "1000px", height: "950px" }}>
       {/* center */}
       <Center radius={60} text={"RAW SCHOOL"} />
       <Line startRadius={60} endRadius={160} segments={36} />
