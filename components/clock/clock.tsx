@@ -6,32 +6,63 @@ import Line from "./line";
 import Thick from "./thick";
 import Name from "./name";
 import Title from "./title";
-import { text1, text2, text3 } from "./text";
+import { supabase } from "@/lib/supabaseClient";
+
+interface BookclubData {
+  month: string;
+  people: string;
+  title: string;
+}
 
 export default function Clock() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [monthData, setMonthData] = useState<BookclubData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 添加全局点击事件监听器
   useEffect(() => {
-    const handleGlobalClick = (e: MouseEvent) => {
-      // 获取点击事件的目标元素
-      const target = e.target as HTMLElement;
+    async function fetchData() {
+      try {
+        const { data, error } = await supabase
+          .from("bookclub")
+          .select("*")
+          .order("month");
 
-      // 检查点击是否在 canvas 元素之外
-      if (!target.closest("canvas")) {
-        setSelectedIndex(null);
-        console.log("Clicked outside, clearing selection");
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          const formattedData: BookclubData[] = data.map((item) => ({
+            month: item.month,
+            people: item.people,
+            title: item.title,
+          }));
+
+          setMonthData(formattedData);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
       }
-    };
+    }
 
-    // 添加事件监听器
-    document.addEventListener("click", handleGlobalClick);
-
-    // 清理函数
-    return () => {
-      document.removeEventListener("click", handleGlobalClick);
-    };
+    fetchData();
   }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  const month = monthData.map((item) => item.month);
+  const people = monthData.flatMap((item) => item.people);
+  const title = monthData.flatMap((item) => item.title);
 
   return (
     <div style={{ position: "relative", width: "1000px", height: "950px" }}>
@@ -44,9 +75,9 @@ export default function Clock() {
       <Dot radius={140} dotSpeed={-0.005} text="WEEK" />
       <Dot radius={160} dotSpeed={0.006} text="DAY" />
       {/* outer ring */}
-      <Thick radius={195} texts={text1} setSelectedIndex={setSelectedIndex} />
-      <Name radius={220} text={text2} selectedIndex={selectedIndex} />
-      <Title radius={290} text={text3} selectedIndex={selectedIndex} />
+      <Thick radius={195} texts={month} setSelectedIndex={setSelectedIndex} />
+      <Name radius={220} text={people} selectedIndex={selectedIndex} />
+      <Title radius={290} text={title} selectedIndex={selectedIndex} />
     </div>
   );
 }
