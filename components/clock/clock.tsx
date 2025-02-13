@@ -60,6 +60,8 @@ export default function Clock() {
     return <div>Error: {error}</div>;
   }
 
+  const uniqueMonths = Array.from(new Set(monthData.map((item) => item.month)));
+
   return (
     <div style={{ position: "relative", width: "1000px", height: "950px" }}>
       {/* center */}
@@ -73,7 +75,7 @@ export default function Clock() {
       {/* outer ring */}
       <Thick
         radius={195}
-        texts={monthData.map((item) => item.month)}
+        texts={uniqueMonths}
         setSelectedIndex={setSelectedIndex}
       />
       <Name
