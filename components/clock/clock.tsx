@@ -60,10 +60,6 @@ export default function Clock() {
     return <div>Error: {error}</div>;
   }
 
-  const month = monthData.map((item) => item.month);
-  const people = monthData.flatMap((item) => item.people);
-  const title = monthData.flatMap((item) => item.title);
-
   return (
     <div style={{ position: "relative", width: "1000px", height: "950px" }}>
       {/* center */}
@@ -75,9 +71,21 @@ export default function Clock() {
       <Dot radius={140} dotSpeed={-0.005} text="WEEK" />
       <Dot radius={160} dotSpeed={0.006} text="DAY" />
       {/* outer ring */}
-      <Thick radius={195} texts={month} setSelectedIndex={setSelectedIndex} />
-      <Name radius={220} text={people} selectedIndex={selectedIndex} />
-      <Title radius={290} text={title} selectedIndex={selectedIndex} />
+      <Thick
+        radius={195}
+        texts={monthData.map((item) => item.month)}
+        setSelectedIndex={setSelectedIndex}
+      />
+      <Name
+        radius={220}
+        text={monthData.map((item) => item.people)}
+        selectedIndex={selectedIndex}
+      />
+      <Title
+        radius={290}
+        text={monthData.map((item) => item.title)}
+        selectedIndex={selectedIndex}
+      />
     </div>
   );
 }

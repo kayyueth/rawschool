@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import React, { useCallback } from "react";
-import { getRelatedIndices } from "./text";
 
 const Sketch = dynamic(() => import("react-p5"), {
   ssr: false,
@@ -45,8 +44,7 @@ export default function Name({
         p5.translate(x, y);
 
         if (selectedIndex !== null) {
-          const { nameIndices } = getRelatedIndices(selectedIndex);
-          if (nameIndices.includes(i)) {
+          if (i === selectedIndex) {
             p5.fill(0);
             p5.stroke(0);
           } else {
