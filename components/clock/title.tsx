@@ -12,6 +12,7 @@ interface CircleExternalProps {
   text: string[];
   textSize?: number;
   selectedIndex: number | null;
+  onSelect?: (index: number) => void;
 }
 
 export default function Title({
@@ -19,6 +20,7 @@ export default function Title({
   text,
   textSize = 9,
   selectedIndex,
+  onSelect,
 }: CircleExternalProps) {
   const setup = useCallback((p5: any, canvasParentRef: any) => {
     p5.createCanvas(1000, 1000).parent(canvasParentRef);
@@ -33,11 +35,33 @@ export default function Title({
       p5.textStyle(p5.NORMAL);
 
       const segmentAngle = (2 * Math.PI) / text.length;
+      const mouseX = p5.mouseX - p5.width / 2;
+      const mouseY = p5.mouseY - p5.height / 2;
+      const mouseAngle = Math.atan2(mouseY, mouseX);
 
       text.forEach((textContent, i) => {
         const angle = i * segmentAngle;
         const x = radius * Math.cos(angle);
         const y = radius * Math.sin(angle);
+
+        // 检查鼠标是否在当前文本区域
+        const textX = p5.width / 2 + x;
+        const textY = p5.height / 2 + y;
+        const lines = textContent.match(/.{1,21}/g) || [textContent];
+        const totalHeight = lines.length * textSize;
+        const maxWidth = Math.max(...lines.map((line) => p5.textWidth(line)));
+
+        const isHovered =
+          p5.mouseX > textX - maxWidth / 2 &&
+          p5.mouseX < textX + maxWidth / 2 &&
+          p5.mouseY > textY - totalHeight / 2 &&
+          p5.mouseY < textY + totalHeight / 2;
+
+        // 处理点击事件
+        if (isHovered && p5.mouseIsPressed && onSelect) {
+          onSelect(i);
+          p5.mouseIsPressed = false;
+        }
 
         p5.push();
         p5.translate(x, y);
@@ -49,20 +73,18 @@ export default function Title({
             p5.fill(180);
           }
         } else {
-          p5.fill(0);
+          p5.fill(isHovered ? "#22c55e" : 0);
         }
 
         if (x < 0) {
           p5.rotate(angle + Math.PI);
           p5.textAlign(p5.RIGHT, p5.CENTER);
-          const lines = textContent.match(/.{1,21}/g) || [textContent];
           lines.forEach((line, index) => {
             p5.text(line, 0, index * textSize);
           });
         } else {
           p5.rotate(angle);
           p5.textAlign(p5.LEFT, p5.CENTER);
-          const lines = textContent.match(/.{1,21}/g) || [textContent];
           lines.forEach((line, index) => {
             p5.text(line, 0, index * textSize);
           });
@@ -71,7 +93,7 @@ export default function Title({
         p5.pop();
       });
     },
-    [radius, text, textSize, selectedIndex]
+    [radius, text, textSize, selectedIndex, onSelect]
   );
 
   return (

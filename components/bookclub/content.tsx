@@ -4,17 +4,30 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 interface BookclubData {
+  id: number;
   season: string;
   title: string;
   people: string;
   description: string;
 }
 
-export default function Content() {
+interface ContentProps {
+  selectedData?: BookclubData | null;
+}
+
+export default function Content({ selectedData }: ContentProps) {
   const [content, setContent] = useState<BookclubData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // If selectedData is provided, use it directly
+    if (selectedData) {
+      setContent(selectedData);
+      setLoading(false);
+      return;
+    }
+
+    // Otherwise fetch the first record as default
     async function fetchContent() {
       try {
         const { data, error } = await supabase
@@ -22,9 +35,6 @@ export default function Content() {
           .select("*")
           .order("month", { ascending: true })
           .limit(1);
-
-        console.log("Fetched data:", data);
-        console.log("Error if any:", error);
 
         if (error) throw error;
         if (data && data.length > 0) {
@@ -38,7 +48,7 @@ export default function Content() {
     }
 
     fetchContent();
-  }, []);
+  }, [selectedData]);
 
   if (loading) return <div>loading...</div>;
   if (!content) return <div>no content</div>;

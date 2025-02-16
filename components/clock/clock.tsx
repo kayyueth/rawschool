@@ -9,14 +9,22 @@ import Title from "./title";
 import { supabase } from "@/lib/supabaseClient";
 
 interface BookclubData {
+  id: number;
   month: string;
   people: string;
   title: string;
+  season: string;
+  description: string;
 }
 
-export default function Clock() {
+interface ClockProps {
+  onDataSelect: (data: BookclubData | null) => void;
+}
+
+export default function Clock({ onDataSelect }: ClockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [monthData, setMonthData] = useState<BookclubData[]>([]);
+  const [selectedData, setSelectedData] = useState<BookclubData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,20 +34,14 @@ export default function Clock() {
         const { data, error } = await supabase
           .from("bookclub")
           .select("*")
-          .order("month");
+          .order("id");
 
         if (error) {
           throw error;
         }
 
         if (data) {
-          const formattedData: BookclubData[] = data.map((item) => ({
-            month: item.month,
-            people: item.people,
-            title: item.title,
-          }));
-
-          setMonthData(formattedData);
+          setMonthData(data);
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -52,6 +54,13 @@ export default function Clock() {
     fetchData();
   }, []);
 
+  // Handle selection change
+  const handleSelectionChange = (index: number) => {
+    setSelectedIndex(index);
+    setSelectedData(monthData[index]);
+    onDataSelect(monthData[index] || null);
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -59,8 +68,6 @@ export default function Clock() {
   if (error) {
     return <div>Error: {error}</div>;
   }
-
-  const uniqueMonths = Array.from(new Set(monthData.map((item) => item.month)));
 
   return (
     <div style={{ position: "relative", width: "1000px", height: "950px" }}>
@@ -75,18 +82,20 @@ export default function Clock() {
       {/* outer ring */}
       <Thick
         radius={195}
-        texts={uniqueMonths}
-        setSelectedIndex={setSelectedIndex}
+        texts={monthData.map((item) => item.month)}
+        setSelectedIndex={handleSelectionChange}
       />
       <Name
         radius={220}
         text={monthData.map((item) => item.people)}
         selectedIndex={selectedIndex}
+        onSelect={handleSelectionChange}
       />
       <Title
         radius={290}
         text={monthData.map((item) => item.title)}
         selectedIndex={selectedIndex}
+        onSelect={handleSelectionChange}
       />
     </div>
   );

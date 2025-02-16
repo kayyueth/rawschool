@@ -12,6 +12,7 @@ interface CircleExternalProps {
   text: string[];
   textSize?: number;
   selectedIndex: number | null;
+  onSelect?: (index: number) => void;
 }
 
 export default function Name({
@@ -19,6 +20,7 @@ export default function Name({
   text,
   textSize = 14,
   selectedIndex,
+  onSelect,
 }: CircleExternalProps) {
   const setup = (p5: any, canvasParentRef: any) => {
     p5.createCanvas(1000, 1000).parent(canvasParentRef);
