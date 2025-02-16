@@ -12,6 +12,7 @@ interface CircleExternalProps {
   text: string[];
   textSize?: number;
   selectedIndex: number | null;
+  selectedIndices: number[];
   onSelect?: (index: number) => void;
 }
 
@@ -20,6 +21,7 @@ export default function Title({
   text,
   textSize = 9,
   selectedIndex,
+  selectedIndices,
   onSelect,
 }: CircleExternalProps) {
   const setup = useCallback((p5: any, canvasParentRef: any) => {
@@ -66,14 +68,13 @@ export default function Title({
         p5.push();
         p5.translate(x, y);
 
-        if (selectedIndex !== null) {
-          if (i === selectedIndex) {
-            p5.fill(0);
-          } else {
-            p5.fill(180);
-          }
+        // 根据选中状态和悬停状态设置颜色
+        if (isHovered) {
+          p5.fill("#22c55e");
+        } else if (selectedIndices.includes(i)) {
+          p5.fill(0);
         } else {
-          p5.fill(isHovered ? "#22c55e" : 0);
+          p5.fill(180);
         }
 
         if (x < 0) {
@@ -93,7 +94,7 @@ export default function Title({
         p5.pop();
       });
     },
-    [radius, text, textSize, selectedIndex, onSelect]
+    [radius, text, textSize, selectedIndex, selectedIndices, onSelect]
   );
 
   return (

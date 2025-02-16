@@ -100,7 +100,6 @@ export default function Thick({ radius, texts, setSelectedIndex }: ThickProps) {
           const endAngle =
             (segment[segment.length - 1] + 1) * segmentAngle - gapAngle / 2;
 
-          // 修改这里的条件判断
           const isHovered = segment.some((idx) => idx === hoveredIndex);
           const isInCurrentMonth =
             currentHoveredIndex !== null &&
@@ -126,16 +125,29 @@ export default function Thick({ radius, texts, setSelectedIndex }: ThickProps) {
         // 为每组月份选择中间位置显示文本
         const midIndex = indices[Math.floor(indices.length / 2)];
         const angle = midIndex * segmentAngle + segmentAngle / 2;
-        const textRadius = radius;
+
+        // 计算每个字符的位置和旋转
+        const charCount = month.length;
+        const totalAngle = (charCount + 1) * 0.05; // 调整这个值来控制文字的弧度
+        const startTextAngle = angle - totalAngle / 2;
 
         p5.push();
-        const x = textRadius * Math.cos(angle);
-        const y = textRadius * Math.sin(angle);
-        p5.translate(x, y);
-        p5.rotate(angle + Math.PI / 2);
         p5.noStroke();
-        p5.fill(indices.includes(hoveredIndex ?? -1) ? 252 : 252, 250, 222);
-        p5.text(month, 0, 0);
+        p5.fill(252, 250, 222);
+
+        // 绘制每个字符
+        for (let i = 0; i < charCount; i++) {
+          const charAngle = startTextAngle + i * 0.05; // 调整这个值来控制字符间距
+          const x = radius * Math.cos(charAngle); // 向内偏移10个像素
+          const y = radius * Math.sin(charAngle);
+
+          p5.push();
+          p5.translate(x, y);
+          p5.rotate(charAngle + Math.PI / 2); // 让文字垂直于圆弧
+          p5.text(month[i], 0, 0);
+          p5.pop();
+        }
+
         p5.pop();
       });
     },

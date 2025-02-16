@@ -24,7 +24,6 @@ interface ClockProps {
 export default function Clock({ onDataSelect }: ClockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [monthData, setMonthData] = useState<BookclubData[]>([]);
-  const [selectedData, setSelectedData] = useState<BookclubData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,10 +53,16 @@ export default function Clock({ onDataSelect }: ClockProps) {
     fetchData();
   }, []);
 
+  // 获取相同月份的所有索引
+  const getMonthIndices = (month: string) => {
+    return monthData
+      .map((item, index) => (item.month === month ? index : -1))
+      .filter((index) => index !== -1);
+  };
+
   // Handle selection change
   const handleSelectionChange = (index: number) => {
     setSelectedIndex(index);
-    setSelectedData(monthData[index]);
     onDataSelect(monthData[index] || null);
   };
 
@@ -68,6 +73,12 @@ export default function Clock({ onDataSelect }: ClockProps) {
   if (error) {
     return <div>Error: {error}</div>;
   }
+
+  // 获取当前选中月份的所有索引
+  const selectedMonthIndices =
+    selectedIndex !== null
+      ? getMonthIndices(monthData[selectedIndex].month)
+      : [];
 
   return (
     <div style={{ position: "relative", width: "1000px", height: "950px" }}>
@@ -89,12 +100,14 @@ export default function Clock({ onDataSelect }: ClockProps) {
         radius={220}
         text={monthData.map((item) => item.people)}
         selectedIndex={selectedIndex}
+        selectedIndices={selectedMonthIndices}
         onSelect={handleSelectionChange}
       />
       <Title
         radius={290}
         text={monthData.map((item) => item.title)}
         selectedIndex={selectedIndex}
+        selectedIndices={selectedMonthIndices}
         onSelect={handleSelectionChange}
       />
     </div>

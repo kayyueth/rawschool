@@ -12,6 +12,7 @@ interface CircleExternalProps {
   text: string[];
   textSize?: number;
   selectedIndex: number | null;
+  selectedIndices: number[];
   onSelect?: (index: number) => void;
 }
 
@@ -20,6 +21,7 @@ export default function Name({
   text,
   textSize = 14,
   selectedIndex,
+  selectedIndices,
   onSelect,
 }: CircleExternalProps) {
   const setup = (p5: any, canvasParentRef: any) => {
@@ -35,6 +37,9 @@ export default function Name({
       p5.textStyle(p5.BOLD);
 
       const segmentAngle = (2 * Math.PI) / text.length;
+      const mouseX = p5.mouseX - p5.width / 2;
+      const mouseY = p5.mouseY - p5.height / 2;
+      const mouseAngle = Math.atan2(mouseY, mouseX);
 
       text.forEach((text, i) => {
         const angle = i * segmentAngle;
@@ -42,20 +47,36 @@ export default function Name({
         const y = radius * Math.sin(angle);
         const lineOffset = p5.textDescent() + 2;
 
+        // 检查鼠标是否在当前文本区域
+        const textX = p5.width / 2 + x;
+        const textY = p5.height / 2 + y;
+        const textWidth = p5.textWidth(text);
+        const textHeight = textSize * 1.5;
+        const isHovered =
+          p5.mouseX > textX - textWidth / 2 &&
+          p5.mouseX < textX + textWidth / 2 &&
+          p5.mouseY > textY - textHeight / 2 &&
+          p5.mouseY < textY + textHeight / 2;
+
+        // 处理点击事件
+        if (isHovered && p5.mouseIsPressed && onSelect) {
+          onSelect(i);
+          p5.mouseIsPressed = false;
+        }
+
         p5.push();
         p5.translate(x, y);
 
-        if (selectedIndex !== null) {
-          if (i === selectedIndex) {
-            p5.fill(0);
-            p5.stroke(0);
-          } else {
-            p5.fill(180);
-            p5.stroke(180);
-          }
-        } else {
+        // 根据选中状态和悬停状态设置颜色
+        if (isHovered) {
+          p5.fill("#22c55e");
+          p5.stroke("#22c55e");
+        } else if (selectedIndices.includes(i)) {
           p5.fill(0);
           p5.stroke(0);
+        } else {
+          p5.fill(180);
+          p5.stroke(180);
         }
 
         if (x < 0) {
@@ -67,7 +88,9 @@ export default function Name({
           p5.text(text, 0, 0);
 
           // Draw underline
-          p5.stroke(0);
+          p5.stroke(
+            isHovered ? "#22c55e" : selectedIndices.includes(i) ? 0 : 180
+          );
           p5.strokeWeight(1);
           const textWidth = p5.textWidth(text);
           p5.line(-textWidth, lineOffset, 0, lineOffset);
@@ -80,7 +103,9 @@ export default function Name({
           p5.text(text, 0, 0);
 
           // Draw underline
-          p5.stroke(0);
+          p5.stroke(
+            isHovered ? "#22c55e" : selectedIndices.includes(i) ? 0 : 180
+          );
           p5.strokeWeight(1);
           const textWidth = p5.textWidth(text);
           p5.line(0, lineOffset, textWidth, lineOffset);
@@ -89,7 +114,7 @@ export default function Name({
         p5.pop();
       });
     },
-    [radius, text, textSize, selectedIndex]
+    [radius, text, textSize, selectedIndex, selectedIndices, onSelect]
   );
 
   return (
