@@ -17,7 +17,7 @@ export default function Thick({ radius, texts, setSelectedIndex }: ThickProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const setup = useCallback((p5: any, canvasParentRef: any) => {
-    p5.createCanvas(1000, 1000).parent(canvasParentRef);
+    p5.createCanvas(800, 800).parent(canvasParentRef);
   }, []);
 
   const draw = useCallback(

@@ -1,6 +1,6 @@
 export default function Brand() {
   return (
-    <div className="flex justify-between ml-20 mr-20 mt-10">
+    <div className="flex justify-between ml-20 mr-20">
       <div>
         <h1 className="font-black text-[120px]">RAW SCHOOL</h1>
       </div>

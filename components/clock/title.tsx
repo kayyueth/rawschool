@@ -25,7 +25,7 @@ export default function Title({
   onSelect,
 }: CircleExternalProps) {
   const setup = useCallback((p5: any, canvasParentRef: any) => {
-    p5.createCanvas(1000, 1000).parent(canvasParentRef);
+    p5.createCanvas(800, 800).parent(canvasParentRef);
   }, []);
 
   const draw = useCallback(

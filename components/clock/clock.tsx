@@ -1,57 +1,41 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Center from "./center";
 import Dot from "./dot";
 import Line from "./line";
 import Thick from "./thick";
 import Name from "./name";
 import Title from "./title";
-import { supabase } from "@/lib/supabaseClient";
-
-interface BookclubData {
-  id: number;
-  month: string;
-  people: string;
-  title: string;
-  season: string;
-  description: string;
-}
+import { BookclubData } from "@/types/bookclub";
 
 interface ClockProps {
   onDataSelect: (data: BookclubData | null) => void;
+  monthData: BookclubData[];
 }
 
-export default function Clock({ onDataSelect }: ClockProps) {
+export default function Clock({ onDataSelect, monthData }: ClockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [monthData, setMonthData] = useState<BookclubData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const { data, error } = await supabase
-          .from("bookclub")
-          .select("*")
-          .order("id");
-
-        if (error) {
-          throw error;
-        }
-
-        if (data) {
-          setMonthData(data);
-        }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
+    const updateSize = () => {
+      if (containerRef.current) {
+        const container = containerRef.current;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        const minSize = Math.min(width, height);
+        setSize({ width: minSize, height: minSize });
       }
-    }
+    };
 
-    fetchData();
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
   }, []);
+
+  // 计算基础半径（以容器大小的比例计算）
+  const baseRadius = size.width * 0.09;
 
   // 获取相同月份的所有索引
   const getMonthIndices = (month: string) => {
@@ -72,14 +56,6 @@ export default function Clock({ onDataSelect }: ClockProps) {
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
   // 获取当前选中月份的所有索引
   const selectedMonthIndices =
     selectedIndex !== null
@@ -87,30 +63,34 @@ export default function Clock({ onDataSelect }: ClockProps) {
       : [];
 
   return (
-    <div style={{ position: "relative", width: "1000px", height: "950px" }}>
+    <div ref={containerRef} style={{ aspectRatio: "1/1" }}>
       {/* center */}
-      <Center radius={60} text={"RAW SCHOOL"} />
-      <Line startRadius={60} endRadius={160} segments={36} />
-      <Dot radius={80} dotSpeed={0.002} text="YEAR" />
-      <Dot radius={100} dotSpeed={-0.003} text="SEASON" />
-      <Dot radius={120} dotSpeed={0.004} text="MONTH" />
-      <Dot radius={140} dotSpeed={-0.005} text="WEEK" />
-      <Dot radius={160} dotSpeed={0.006} text="DAY" />
+      <Center radius={baseRadius} text={"RAW SCHOOL"} />
+      <Line
+        startRadius={baseRadius}
+        endRadius={baseRadius * 2.67}
+        segments={36}
+      />
+      <Dot radius={baseRadius * 1.33} dotSpeed={0.002} text="YEAR" />
+      <Dot radius={baseRadius * 1.67} dotSpeed={-0.003} text="SEASON" />
+      <Dot radius={baseRadius * 2} dotSpeed={0.004} text="MONTH" />
+      <Dot radius={baseRadius * 2.33} dotSpeed={-0.005} text="WEEK" />
+      <Dot radius={baseRadius * 2.67} dotSpeed={0.006} text="DAY" />
       {/* outer ring */}
       <Thick
-        radius={195}
+        radius={baseRadius * 3.25}
         texts={monthData.map((item) => item.month)}
         setSelectedIndex={handleSelectionChange}
       />
       <Name
-        radius={220}
+        radius={baseRadius * 3.67}
         text={monthData.map((item) => item.people)}
         selectedIndex={selectedIndex}
         selectedIndices={selectedMonthIndices}
         onSelect={handleSelectionChange}
       />
       <Title
-        radius={290}
+        radius={baseRadius * 4.83}
         text={monthData.map((item) => item.title)}
         selectedIndex={selectedIndex}
         selectedIndices={selectedMonthIndices}

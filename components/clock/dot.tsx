@@ -23,7 +23,7 @@ export default function Dot({
 
   // 使用 useCallback 来缓存这些函数，防止不必要的重新创建
   const setup = React.useCallback((p5: any, canvasParentRef: any) => {
-    p5.createCanvas(1000, 1000).parent(canvasParentRef);
+    p5.createCanvas(800, 800).parent(canvasParentRef);
   }, []);
 
   const draw = React.useCallback(
