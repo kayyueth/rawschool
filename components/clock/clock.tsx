@@ -62,8 +62,14 @@ export default function Clock({ onDataSelect }: ClockProps) {
 
   // Handle selection change
   const handleSelectionChange = (index: number) => {
-    setSelectedIndex(index);
-    onDataSelect(monthData[index] || null);
+    // 如果点击的是当前选中的项，则取消选择
+    if (index === selectedIndex) {
+      setSelectedIndex(null);
+      onDataSelect(null);
+    } else {
+      setSelectedIndex(index);
+      onDataSelect(monthData[index] || null);
+    }
   };
 
   if (loading) {

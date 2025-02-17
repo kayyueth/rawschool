@@ -71,12 +71,19 @@ export default function Name({
         if (isHovered) {
           p5.fill("#22c55e");
           p5.stroke("#22c55e");
-        } else if (selectedIndices.includes(i)) {
+        } else if (selectedIndices.length > 0) {
+          // 只有在有选中项时才显示灰色
+          if (selectedIndices.includes(i)) {
+            p5.fill(0);
+            p5.stroke(0);
+          } else {
+            p5.fill(180);
+            p5.stroke(180);
+          }
+        } else {
+          // 默认状态显示黑色
           p5.fill(0);
           p5.stroke(0);
-        } else {
-          p5.fill(180);
-          p5.stroke(180);
         }
 
         if (x < 0) {
@@ -89,7 +96,13 @@ export default function Name({
 
           // Draw underline
           p5.stroke(
-            isHovered ? "#22c55e" : selectedIndices.includes(i) ? 0 : 180
+            isHovered
+              ? "#22c55e"
+              : selectedIndices.length > 0
+              ? selectedIndices.includes(i)
+                ? 0
+                : 180
+              : 0
           );
           p5.strokeWeight(1);
           const textWidth = p5.textWidth(text);
@@ -104,7 +117,13 @@ export default function Name({
 
           // Draw underline
           p5.stroke(
-            isHovered ? "#22c55e" : selectedIndices.includes(i) ? 0 : 180
+            isHovered
+              ? "#22c55e"
+              : selectedIndices.length > 0
+              ? selectedIndices.includes(i)
+                ? 0
+                : 180
+              : 0
           );
           p5.strokeWeight(1);
           const textWidth = p5.textWidth(text);

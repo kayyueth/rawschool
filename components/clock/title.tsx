@@ -71,10 +71,16 @@ export default function Title({
         // 根据选中状态和悬停状态设置颜色
         if (isHovered) {
           p5.fill("#22c55e");
-        } else if (selectedIndices.includes(i)) {
-          p5.fill(0);
+        } else if (selectedIndices.length > 0) {
+          // 只有在有选中项时才显示灰色
+          if (selectedIndices.includes(i)) {
+            p5.fill(0);
+          } else {
+            p5.fill(180);
+          }
         } else {
-          p5.fill(180);
+          // 默认状态显示黑色
+          p5.fill(0);
         }
 
         if (x < 0) {
