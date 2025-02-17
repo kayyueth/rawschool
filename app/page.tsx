@@ -61,28 +61,41 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex justify-between items-start px-24">
         {/* Clock and List View */}
-        <div className="w-[45%] relative mt-10">
-          {/* Toggle */}
-          <div className="absolute z-10 flex items-center space-x-2">
-            <Switch checked={showTable} onCheckedChange={setShowTable} />
-            <span className="text-lg font-black">
-              {showTable ? "Clock View" : "List View"}
-            </span>
+        <div className="w-[50%] relative mt-10">
+          {/* Toggle and Controls */}
+          <div className="absolute z-10 flex items-center space-x-4 w-full">
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={showTable}
+                onCheckedChange={(checked) => {
+                  setShowTable(checked);
+                  console.log("Switch toggled:", checked);
+                }}
+              />
+              <span
+                className="text-lg font-black text-black cursor-pointer"
+                onClick={() => setShowTable(!showTable)}
+              >
+                {showTable ? "List View" : "Clock View"}
+              </span>
+            </div>
+            {showTable}
           </div>
+
           {/* Table or Clock */}
           {showTable ? (
-            <div className="mt-20">
+            <div>
               <DataTable data={monthData} onSelect={setSelectedBookData} />
             </div>
           ) : (
             <>
-              <div className="flex flex-col h-[900px]">
+              <div className="flex flex-col h-[1000px]">
                 <Clock
                   onDataSelect={setSelectedBookData}
                   monthData={monthData}
                 />
                 <div className="flex-grow"></div>
-                <div className="ml-[20%] text-center">
+                <div className="text-left text-black">
                   <p className="font-semibold">Raw Bookclub Calendar</p>
                   <p className="mb-10">Updated: Feb 6, 2025</p>
                 </div>
@@ -92,7 +105,7 @@ export default function Home() {
         </div>
 
         {/* Label */}
-        <div className="ml-10 flex h-screen">
+        <div className="ml-20 flex h-screen">
           <Label />
         </div>
 
