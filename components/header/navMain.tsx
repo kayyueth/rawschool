@@ -5,20 +5,14 @@ export default function NavMain() {
         <a href="/home" className="">
           Bookclub Calender
         </a>
-        <a href="/list" className="ml-8">
-          Reading List
-        </a>
         <a href="/graphics" className="ml-8">
-          Crypto Humanities Infographics
+          DeSci Wiki
         </a>
       </div>
 
       <div>
         <a href="/wiki" className="mr-8">
-          DeSci Wikipedia
-        </a>
-        <a href="/classroom" className="">
-          Raw Classroom
+          Join Us
         </a>
       </div>
     </div>
