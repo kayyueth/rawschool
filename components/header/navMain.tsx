@@ -1,19 +1,28 @@
-export default function NavMain() {
+"use client";
+
+interface NavMainProps {
+  onViewChange?: (view: "book" | "reviews" | "join") => void;
+}
+
+export default function NavMain({ onViewChange }: NavMainProps) {
   return (
     <div className="flex ml-20 mr-20 mt-4 justify-between text-xl border-b-2 border-black">
       <div className="mb-4">
-        <a href="/home" className="ml-8">
+        <a href="/" className="ml-8">
           Bookclub Calender
         </a>
-        <a href="/graphics" className="ml-8">
+        <a href="" className="ml-8">
           DeSci Wiki
         </a>
       </div>
 
       <div>
-        <a href="/wiki" className="mr-8">
+        <button
+          onClick={() => onViewChange?.("join")}
+          className="mr-8 hover:opacity-70 transition-opacity"
+        >
           Join Us
-        </a>
+        </button>
       </div>
     </div>
   );

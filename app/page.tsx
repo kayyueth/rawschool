@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { BookclubData } from "@/types/bookclub";
 import { supabase } from "@/lib/supabaseClient";
+import JoinUs from "@/components/join/join-us";
 
 export default function Home() {
   const [selectedBookData, setSelectedBookData] = useState<BookclubData | null>(
@@ -19,6 +20,9 @@ export default function Home() {
   const [showTable, setShowTable] = useState(false);
   const [monthData, setMonthData] = useState<BookclubData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentView, setCurrentView] = useState<"book" | "reviews" | "join">(
+    "book"
+  );
 
   useEffect(() => {
     async function fetchData() {
@@ -55,63 +59,67 @@ export default function Home() {
       <div className="sticky top-0 z-50 bg-[#FCFADE]">
         <Brand />
         <NavSub />
-        <NavMain />
+        <NavMain onViewChange={setCurrentView} />
       </div>
 
       {/* Main Content */}
-      <div className="flex justify-between items-start px-24">
-        {/* Clock and List View */}
-        <div className="w-[50%] relative mt-10">
-          {/* Toggle and Controls */}
-          <div className="absolute z-10 flex items-center space-x-4 w-full">
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={showTable}
-                onCheckedChange={(checked) => {
-                  setShowTable(checked);
-                  console.log("Switch toggled:", checked);
-                }}
-              />
-              <span
-                className="text-lg font-black text-black cursor-pointer"
-                onClick={() => setShowTable(!showTable)}
-              >
-                {showTable ? "List View" : "Clock View"}
-              </span>
+      {currentView === "join" ? (
+        <JoinUs />
+      ) : (
+        <div className="flex justify-between items-start px-24">
+          {/* Clock and List View */}
+          <div className="w-[50%] relative mt-10">
+            {/* Toggle and Controls */}
+            <div className="absolute z-10 flex items-center space-x-4 w-full">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={showTable}
+                  onCheckedChange={(checked) => {
+                    setShowTable(checked);
+                    console.log("Switch toggled:", checked);
+                  }}
+                />
+                <span
+                  className="text-lg font-black text-black cursor-pointer"
+                  onClick={() => setShowTable(!showTable)}
+                >
+                  {showTable ? "List View" : "Clock View"}
+                </span>
+              </div>
+              {showTable}
             </div>
-            {showTable}
+
+            {/* Table or Clock */}
+            {showTable ? (
+              <div>
+                <DataTable data={monthData} onSelect={setSelectedBookData} />
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col h-[1000px]">
+                  <Clock
+                    onDataSelect={setSelectedBookData}
+                    monthData={monthData}
+                  />
+                  <div className="flex-grow"></div>
+                  <div className="text-left text-black">
+                    <p className="font-semibold">Raw Bookclub Calendar</p>
+                    <p className="mb-10">Updated: Feb 6, 2025</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Table or Clock */}
-          {showTable ? (
-            <div>
-              <DataTable data={monthData} onSelect={setSelectedBookData} />
-            </div>
-          ) : (
-            <>
-              <div className="flex flex-col h-[1000px]">
-                <Clock
-                  onDataSelect={setSelectedBookData}
-                  monthData={monthData}
-                />
-                <div className="flex-grow"></div>
-                <div className="text-left text-black">
-                  <p className="font-semibold">Raw Bookclub Calendar</p>
-                  <p className="mb-10">Updated: Feb 6, 2025</p>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+          {/* Label */}
+          <div className="ml-20 flex h-screen">
+            <Label />
+          </div>
 
-        {/* Label */}
-        <div className="ml-20 flex h-screen">
-          <Label />
+          {/* Content */}
+          <Content selectedData={selectedBookData} />
         </div>
-
-        {/* Content */}
-        <Content selectedData={selectedBookData} />
-      </div>
+      )}
     </div>
   );
 }
