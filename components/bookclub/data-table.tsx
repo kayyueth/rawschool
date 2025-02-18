@@ -63,15 +63,15 @@ export function DataTable({ data, onSelect }: DataTableProps) {
             placeholder="Search by people or title..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm"
+            className="max-w-sm bg-white"
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
+              <Button variant="outline" className="ml-auto bg-white">
                 Columns <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="bg-white">
               {columns.map((column) => (
                 <DropdownMenuCheckboxItem
                   key={column.key}
