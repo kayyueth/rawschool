@@ -92,6 +92,8 @@ export default function Content({ selectedData }: ContentProps) {
     });
   };
 
+  console.log("Reviews data:", reviews);
+
   return (
     <div className="mt-10 w-[35%] text-right">
       {!showReviews ? (
@@ -110,15 +112,15 @@ export default function Content({ selectedData }: ContentProps) {
           <p className="mt-2 mb-6 ml-10">{content.description}</p>
         </>
       ) : (
-        <>
+        <div className="h-[800px] flex flex-col">
           <button
             onClick={() => setShowReviews(false)}
             className="text-black text-md font-bold flex items-center mb-8 hover:opacity-70 transition-opacity"
           >
             <ArrowLeft className="mr-2" /> BACK TO BOOK
           </button>
-          <h1 className="text-2xl font-bold mb-8 ml-10">{content.title}</h1>
-          <div className="space-y-8 text-left">
+          <h1 className="text-2xl font-bold mb-8 text-left">{content.title}</h1>
+          <div className="space-y-8 text-left overflow-y-auto flex-1 pr-4">
             {reviews.map((review) => (
               <div key={review.id} className="border-b border-black pb-6">
                 <p className="text-xl font-bold">{review.reviewer}</p>
@@ -132,7 +134,7 @@ export default function Content({ selectedData }: ContentProps) {
               <p className="text-center text-gray-500">No reviews yet</p>
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
