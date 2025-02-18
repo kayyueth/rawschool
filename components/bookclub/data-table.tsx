@@ -38,11 +38,13 @@ export function DataTable({ data, onSelect }: DataTableProps) {
   );
 
   // Filter data based on search query
-  const filteredData = data.filter((item) =>
-    Object.values(item).some((value) =>
-      value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
+  const filteredData = data.filter((item) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      item.people.toLowerCase().includes(searchLower) ||
+      item.title.toLowerCase().includes(searchLower)
+    );
+  });
 
   const columns = [
     { key: "id", label: "ID" },
@@ -58,7 +60,7 @@ export function DataTable({ data, onSelect }: DataTableProps) {
         {/* Search and Column Toggle */}
         <div className="flex justify-between items-center gap-4">
           <Input
-            placeholder="Search all columns..."
+            placeholder="Search by people or title..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm"
