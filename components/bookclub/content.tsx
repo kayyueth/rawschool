@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight, ArrowLeft, Plus } from "lucide-react";
+import { ArrowRight, ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
@@ -39,10 +39,13 @@ export default function Content({ selectedData }: ContentProps) {
   const [loading, setLoading] = useState(true);
   const [showReviews, setShowReviews] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
   const [newReview, setNewReview] = useState({
     reviewer: "",
     review: "",
   });
+  const [currentReviewer, setCurrentReviewer] = useState<string>("");
 
   useEffect(() => {
     // If selectedData is provided, use it directly
@@ -100,28 +103,96 @@ export default function Content({ selectedData }: ContentProps) {
     if (!content || !newReview.reviewer || !newReview.review) return;
 
     try {
-      const { data, error } = await supabase
-        .from("bookreview")
-        .insert([
-          {
-            book_id: content.id,
+      if (isEditMode && editingReviewId) {
+        // Check if the current reviewer matches the original reviewer
+        const reviewToEdit = reviews.find((r) => r.id === editingReviewId);
+        if (reviewToEdit?.reviewer !== currentReviewer) {
+          console.error("You can only edit your own reviews");
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("bookreview")
+          .update({
             reviewer: newReview.reviewer,
             review: newReview.review,
-            created_at: new Date().toISOString(),
-          },
-        ])
-        .select();
+          })
+          .eq("id", editingReviewId)
+          .select();
+
+        if (error) throw error;
+
+        if (data) {
+          setReviews(
+            reviews.map((review) =>
+              review.id === editingReviewId ? data[0] : review
+            )
+          );
+        }
+      } else {
+        const { data, error } = await supabase
+          .from("bookreview")
+          .insert([
+            {
+              book_id: content.id,
+              reviewer: newReview.reviewer,
+              review: newReview.review,
+              created_at: new Date().toISOString(),
+            },
+          ])
+          .select();
+
+        if (error) throw error;
+
+        if (data) {
+          setReviews([data[0], ...reviews]);
+          // Set current reviewer when adding a new review
+          setCurrentReviewer(newReview.reviewer);
+        }
+      }
+
+      setNewReview({ reviewer: "", review: "" });
+      setIsDialogOpen(false);
+      setIsEditMode(false);
+      setEditingReviewId(null);
+    } catch (error) {
+      console.error("Error handling review:", error);
+    }
+  };
+
+  const handleEditReview = (review: BookReview) => {
+    if (review.reviewer !== currentReviewer) {
+      console.error("You can only edit your own reviews");
+      return;
+    }
+
+    setNewReview({
+      reviewer: review.reviewer,
+      review: review.review,
+    });
+    setEditingReviewId(review.id);
+    setIsEditMode(true);
+    setIsDialogOpen(true);
+  };
+
+  const handleDeleteReview = async (reviewId: number) => {
+    const reviewToDelete = reviews.find((r) => r.id === reviewId);
+    if (reviewToDelete?.reviewer !== currentReviewer) {
+      console.error("You can only delete your own reviews");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("bookreview")
+        .delete()
+        .eq("id", reviewId);
 
       if (error) throw error;
-      console.log(content.id, newReview.reviewer, newReview.review);
 
-      if (data) {
-        setReviews([data[0], ...reviews]);
-        setNewReview({ reviewer: "", review: "" });
-        setIsDialogOpen(false);
-      }
+      setReviews(reviews.filter((review) => review.id !== reviewId));
     } catch (error) {
-      console.error("Error adding review:", error);
+      console.error("Error deleting review:", error);
     }
   };
 
@@ -156,7 +227,17 @@ export default function Content({ selectedData }: ContentProps) {
       ) : (
         <div className="h-[800px] flex flex-col">
           <div className="absolute right-20">
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) {
+                  setNewReview({ reviewer: "", review: "" });
+                  setIsEditMode(false);
+                  setEditingReviewId(null);
+                }
+              }}
+            >
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
@@ -167,7 +248,9 @@ export default function Content({ selectedData }: ContentProps) {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add a Review</DialogTitle>
+                  <DialogTitle>
+                    {isEditMode ? "Edit Review" : "Add a Review"}
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
@@ -178,6 +261,7 @@ export default function Content({ selectedData }: ContentProps) {
                         setNewReview({ ...newReview, reviewer: e.target.value })
                       }
                       placeholder="Your name"
+                      disabled={isEditMode}
                     />
                   </div>
                   <div className="space-y-2">
@@ -196,7 +280,7 @@ export default function Content({ selectedData }: ContentProps) {
                     className="w-full"
                     disabled={!newReview.reviewer || !newReview.review}
                   >
-                    Submit Review
+                    {isEditMode ? "Update Review" : "Submit Review"}
                   </Button>
                 </div>
               </DialogContent>
@@ -213,11 +297,38 @@ export default function Content({ selectedData }: ContentProps) {
           </h1>
           <div className="space-y-8 text-left overflow-y-auto flex-1 pr-4">
             {reviews.map((review) => (
-              <div key={review.id} className="border-b border-black pb-6">
-                <p className="text-xl font-bold">{review.reviewer}</p>
-                <p className="text-sm text-gray-600 mb-4">
-                  {formatDate(review.created_at)}
-                </p>
+              <div
+                key={review.id}
+                className="border-b border-black pb-6 relative"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-xl font-bold">{review.reviewer}</p>
+                    <p className="text-sm text-gray-600 mb-4">
+                      {formatDate(review.created_at)}
+                    </p>
+                  </div>
+                  {review.reviewer === currentReviewer && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleEditReview(review)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 hover:text-red-700"
+                        onClick={() => handleDeleteReview(review.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 <p className="whitespace-pre-line">{review.review}</p>
               </div>
             ))}
