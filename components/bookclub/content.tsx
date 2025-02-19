@@ -107,11 +107,13 @@ export default function Content({ selectedData }: ContentProps) {
             book_id: content.id,
             reviewer: newReview.reviewer,
             review: newReview.review,
+            created_at: new Date().toISOString(),
           },
         ])
         .select();
 
       if (error) throw error;
+      console.log(content.id, newReview.reviewer, newReview.review);
 
       if (data) {
         setReviews([data[0], ...reviews]);
@@ -133,8 +135,6 @@ export default function Content({ selectedData }: ContentProps) {
       day: "numeric",
     });
   };
-
-  console.log("Reviews data:", reviews);
 
   return (
     <div className="mt-10 w-[35%] text-right">
