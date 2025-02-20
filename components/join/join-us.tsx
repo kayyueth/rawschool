@@ -11,7 +11,6 @@ import Stories from "./stories";
 import Project from "./project";
 import Past from "./past";
 import Application from "./application";
-import Contribution from "./contribution";
 import Volunteer from "./volunteer";
 
 export default function JoinUs() {
@@ -28,8 +27,6 @@ export default function JoinUs() {
         return <Past />;
       case "application":
         return <Application />;
-      case "contribution":
-        return <Contribution />;
       case "volunteer":
         return <Volunteer />;
       default:
@@ -101,16 +98,6 @@ export default function JoinUs() {
                   }`}
                 >
                   Application & Subscription
-                </button>
-                <button
-                  onClick={() => setSelectedContent("contribution")}
-                  className={`hover:text-gray-600 transition-colors ${
-                    selectedContent === "contribution"
-                      ? "text-blue-600 font-medium"
-                      : ""
-                  }`}
-                >
-                  Join the Working Team
                 </button>
                 <button
                   onClick={() => setSelectedContent("volunteer")}
