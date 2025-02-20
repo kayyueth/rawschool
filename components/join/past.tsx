@@ -214,12 +214,56 @@ export default function Past() {
         <div>
           <h2 className="text-4xl mb-1">Bookclub Activity</h2>
           <p>2025 Feb - Ongoing </p>
+          <p className="mt-2 text-sm border-b-2 border-gray-300 pb-4">
+            The Raw School Bookclub Activity kicks off its first 2025 program
+            with a seven-week deep dive into Crypto Wars from February 22 to
+            April 12, in collaboration with the book’s Chinese translator, Kurt
+            Pan.
+            <br />
+            <br />
+            The book club begins with a lecture and cryptography workshop led by
+            Kurt, followed by weekly discussions centered on key themes and
+            participant-led reflections. The program concludes with an expert
+            talk and a final research discussion.
+            <br />
+            <br />
+            Participants are encouraged to contribute through collaborative
+            entries and pursue independent research on topics of interest. The
+            book club follows a staking and scholarship refund model to
+            incentivize engagement and commitment.
+          </p>
         </div>
 
         {/* Product Development */}
         <div>
           <h2 className="text-4xl mb-1">Product Development</h2>
           <p>2025 Feb - Ongoing </p>
+          <p className="mt-2 text-sm border-b-2 border-gray-300 pb-6">
+            In 2025, Raw School will develop an official website to host the
+            community’s learning outcomes and accumulated knowledge, featuring
+            the following key functions:
+            <br />
+            <br />
+            <li>
+              <span className="font-black">Bookclub: Reading Dashboard</span> –
+              Tracks book reading data and allows users to write reviews,
+              similar to Goodreads, enabling participants to share insights and
+              discussions on books.
+            </li>
+            <li>
+              <span className="font-black">
+                Wiki: Crypto-Humanities Dictionary
+              </span>{" "}
+              – A decentralized knowledge base linking concepts to relevant
+              books or literature.
+            </li>
+            <li>
+              <span className="font-black">SBT Identity System</span> – Enables
+              users to link their crypto wallets and verify SBTs (Soulbound
+              Tokens) to establish community identity, granting appropriate
+              permissions to foster trust and collaboration.
+            </li>
+          </p>
         </div>
       </div>
     </div>
