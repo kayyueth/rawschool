@@ -10,8 +10,8 @@ import { useState } from "react";
 import Stories from "./stories";
 import Project from "./project";
 import Past from "./past";
-import Semester from "./semester";
-import Subscription from "./subscription";
+import Application from "./application";
+import Contribution from "./contribution";
 import Volunteer from "./volunteer";
 
 export default function JoinUs() {
@@ -26,10 +26,10 @@ export default function JoinUs() {
         return <Project />;
       case "past":
         return <Past />;
-      case "semester":
-        return <Semester />;
-      case "subscription":
-        return <Subscription />;
+      case "application":
+        return <Application />;
+      case "contribution":
+        return <Contribution />;
       case "volunteer":
         return <Volunteer />;
       default:
@@ -93,9 +93,9 @@ export default function JoinUs() {
                   Past Events
                 </button>
                 <button
-                  onClick={() => setSelectedContent("semester")}
+                  onClick={() => setSelectedContent("application")}
                   className={`hover:text-gray-600 transition-colors ${
-                    selectedContent === "semester"
+                    selectedContent === "application"
                       ? "text-blue-600 font-medium"
                       : ""
                   }`}
@@ -103,9 +103,9 @@ export default function JoinUs() {
                   Application & Subscription
                 </button>
                 <button
-                  onClick={() => setSelectedContent("subscription")}
+                  onClick={() => setSelectedContent("contribution")}
                   className={`hover:text-gray-600 transition-colors ${
-                    selectedContent === "subscription"
+                    selectedContent === "contribution"
                       ? "text-blue-600 font-medium"
                       : ""
                   }`}
