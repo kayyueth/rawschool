@@ -4,7 +4,7 @@ import { Newspaper } from "lucide-react";
 
 export default function Project() {
   return (
-    <div className="h-[800px]">
+    <div className="w-full h-[600px] overflow-auto">
       <div className="flex gap-4 mt-8">
         <h1 className="text-5xl font-bold">Raw School</h1>
         <Link

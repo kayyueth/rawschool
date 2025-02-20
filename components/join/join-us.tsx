@@ -100,7 +100,7 @@ export default function JoinUs() {
                       : ""
                   }`}
                 >
-                  Semester Application
+                  Application & Subscription
                 </button>
                 <button
                   onClick={() => setSelectedContent("subscription")}
@@ -110,7 +110,7 @@ export default function JoinUs() {
                       : ""
                   }`}
                 >
-                  Bookclub Subscription
+                  Join the Working Team
                 </button>
                 <button
                   onClick={() => setSelectedContent("volunteer")}
@@ -120,7 +120,7 @@ export default function JoinUs() {
                       : ""
                   }`}
                 >
-                  Volunteer & Contribution
+                  Volunteer & Donation
                 </button>
               </ul>
             </AccordionContent>
