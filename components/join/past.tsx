@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Newspaper } from "lucide-react";
 import { Scale } from "lucide-react";
+import { Youtube } from "lucide-react";
 
 export default function Past() {
   return (
@@ -21,6 +22,13 @@ export default function Past() {
           className="mt-3"
         >
           <Scale className="cursor-pointer hover:text-blue-500" />
+        </Link>
+        <Link
+          href="https://www.youtube.com/playlist?list=PLb3KKuZ5u5Ezoo1wP8w_LSG6YAJY6q8Vq"
+          target="_blank"
+          className="mt-3"
+        >
+          <Youtube className="cursor-pointer hover:text-blue-500" />
         </Link>
       </div>
 
@@ -121,7 +129,7 @@ export default function Past() {
             (Guest: cyber pigeon)
           </li>
           <li className="text-lg italic">
-            Mining Industry and Mining Pool (Guest: cyber pigeon)
+            Mining Industry and Mining Pool (Guest: Sanshui Tang)
           </li>
         </div>
 
@@ -152,17 +160,62 @@ export default function Past() {
         <div>
           <h2 className="text-4xl mb-1">Joint Event</h2>
           <p>2024 Mar - 2024 May</p>
+          <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
+            A multi-city crypto-humanities reading group in collaboration with
+            the 706 Community’s Agora Dialogue series.
+          </p>
+          <p className="mt-4 text-lg font-bold mb-1">Events including ...</p>
+          <li className="text-lg italic">
+            <a
+              href="https://mp.weixin.qq.com/s/ubNgOvFV0_oBtYUbpWe20A"
+              className="hover:text-blue-500"
+            >
+              Cypherpunks: Seeking for cypherpunks
+            </a>
+          </li>
+          <li className="text-lg italic">
+            <a
+              href="https://mp.weixin.qq.com/s/3277bKn78x-WDScV8R5eaA"
+              className="hover:text-blue-500"
+            >
+              Data Dignity: Are you a proletariat worker?
+            </a>
+          </li>
         </div>
+
         {/* Research Team */}
         <div>
           <h2 className="text-4xl mb-1">Research Team</h2>
           <p>2024 Jul - 2024 Sep</p>
+          <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
+            An initiative that explores the pre-Bitcoin history of digital
+            money, cryptographic thought, and decentralized systems.
+          </p>
+          <p className="mt-4 text-lg font-bold mb-1">Outputs including ...</p>
+          <li className="text-lg italic">
+            <a
+              href="https://www.notion.so/uncommons/Library-Researcher-Club-53fa9a1d564746a3a70a3c80ae78f917"
+              className="hover:text-blue-500 mr-2"
+            >
+              Library + Researcher Club
+            </a>
+          </li>
+          <li className="text-lg italic">
+            <a
+              href="https://docs.google.com/spreadsheets/d/e/2PACX-1vSR_iaOBc5Xr9LENtZjMV-JZaHEp6qXtCtlxMF2TwzB8Zo8UBtkD1fz9v_VgqRqTk9YVUgtIGoHHlOe/pubhtml?gid=0&single=true"
+              className="hover:text-blue-500 mr-2"
+            >
+              The Pre-Bitcoin History Timeline
+            </a>
+          </li>
         </div>
+
         {/* Bookclub Activity */}
         <div>
           <h2 className="text-4xl mb-1">Bookclub Activity</h2>
           <p>2025 Feb - Ongoing </p>
         </div>
+
         {/* Product Development */}
         <div>
           <h2 className="text-4xl mb-1">Product Development</h2>

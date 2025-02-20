@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Scale } from "lucide-react";
 import { Newspaper } from "lucide-react";
-
+import { Youtube } from "lucide-react";
 export default function Project() {
   return (
     <div className="w-full h-[600px] overflow-auto">
@@ -20,6 +20,13 @@ export default function Project() {
           className="mt-3"
         >
           <Scale className="cursor-pointer hover:text-blue-500" />
+        </Link>
+        <Link
+          href="https://www.youtube.com/playlist?list=PLb3KKuZ5u5Ezoo1wP8w_LSG6YAJY6q8Vq"
+          target="_blank"
+          className="mt-3"
+        >
+          <Youtube className="cursor-pointer hover:text-blue-500" />
         </Link>
       </div>
       <h3 className="text-4xl mt-6">
