@@ -23,6 +23,7 @@ export default function Past() {
           <Scale className="cursor-pointer hover:text-blue-500" />
         </Link>
       </div>
+
       {/* Content */}
       <div className="mt-8 grid grid-cols-2 gap-14">
         {/* Study Room */}
@@ -50,6 +51,7 @@ export default function Past() {
           <li className="text-lg italic">A Brief Study of MakerDAO</li>
           <li className="text-lg italic">Zuzalu: A Visionary Community</li>
         </div>
+
         {/* Reading Group */}
         <div className="">
           <h2 className="text-4xl mb-1">Reading Group</h2>
@@ -57,9 +59,8 @@ export default function Past() {
           <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
             A co-reading initiative to explore classic books at the intersection
             of crypto and humanities. Each session, a participant leads the
-            discussion by presenting key insights from the reading, followed by
-            a group conversation to deepen understanding and exchange
-            perspectives.
+            discussion by presenting insights from the reading, followed by a
+            group conversation to deepen understanding.
           </p>
           <p className="mt-4 text-lg font-bold mb-1">
             Reading list including ...
@@ -67,22 +68,20 @@ export default function Past() {
           <li className="text-lg italic">
             <a
               href="https://www.youtube.com/watch?v=7uukwaqYqOE&t=8s"
-              className="hover:text-blue-500"
+              className="hover:text-blue-500 mr-2"
             >
               The Sovereign Individual
             </a>
-            : How to survive and thrive during the collapse of the welfare state
             (Reader: Big Song)
           </li>
           <li className="text-lg italic">
             <a
               href="https://www.youtube.com/watch?v=TdHEO7Pkgiw"
-              className="hover:text-blue-500"
+              className="hover:text-blue-500 mr-2"
             >
               Radical Markets
             </a>
-            : Uprooting Capitalism and Democracy for a Just Society (Reader:
-            Twone)
+            (Reader: Twone)
           </li>
           <li className="text-lg italic">
             Bitcoin: A Peer-to-Peer Electronic Cash System (Reader: Ada)
@@ -91,16 +90,64 @@ export default function Past() {
             Cypherpunks: Freedom and the Future of the Internet (Reader: Atlas)
           </li>
         </div>
+
         {/* Guest Lecture */}
         <div className="mt-4">
           <h2 className="text-4xl mb-1">Guest Lecture</h2>
           <p>2024 Jan - 2024 Apr</p>
+          <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
+            A series that invites thinkers and builders of related fields to
+            share insights on their work.
+          </p>
+          <p className="mt-4 text-lg font-bold mb-1">
+            Guest list including ...
+          </p>
+          <li className="text-lg italic">
+            <a
+              href="https://www.youtube.com/watch?v=BeI8Bdq1SRY"
+              className="hover:text-blue-500 mr-2"
+            >
+              Artistic Research
+            </a>
+            (Guest: Fangting)
+          </li>
+          <li className="text-lg italic">
+            <a
+              href="https://www.youtube.com/watch?v=Ql7xpKsnThY"
+              className="hover:text-blue-500 mr-2"
+            >
+              The Probility of A Bitcoin Attack
+            </a>
+            (Guest: cyber pigeon)
+          </li>
+          <li className="text-lg italic">
+            Mining Industry and Mining Pool (Guest: cyber pigeon)
+          </li>
         </div>
+
         {/* Debate Competition */}
         <div>
           <h2 className="text-4xl mb-1">Debate Competition</h2>
           <p>2024 Apr - 2024 May</p>
+          <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
+            A Debate Competition that challenges participants to engage in
+            critical discussions on technology ethics and the future of
+            innovation.
+          </p>
+          <p className="mt-4 text-lg font-bold mb-1">
+            Debate topics including ...
+          </p>
+          <li className="text-lg italic">
+            <a
+              href="https://www.youtube.com/watch?v=L7zGv6tf_Eg"
+              className="hover:text-blue-500 mr-2"
+            >
+              The Ethics of Progress: e/acc, d/acc, or a Middle Path?{" "}
+            </a>
+            (Host: Wingo, Debators: Fangting, Yihan, Twone, Haotian, Jiang, Ren)
+          </li>
         </div>
+
         {/* Joint Event */}
         <div>
           <h2 className="text-4xl mb-1">Joint Event</h2>
