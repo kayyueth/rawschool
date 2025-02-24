@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { BookclubData } from "@/types/bookclub";
 import { supabase } from "@/lib/supabaseClient";
 import JoinUs from "@/components/join/join-us";
+import WikiHome from "@/components/wiki/home";
 
 export default function Home() {
   const [selectedBookData, setSelectedBookData] = useState<BookclubData | null>(
@@ -20,9 +21,9 @@ export default function Home() {
   const [showTable, setShowTable] = useState(false);
   const [monthData, setMonthData] = useState<BookclubData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<"book" | "reviews" | "join">(
-    "book"
-  );
+  const [currentView, setCurrentView] = useState<
+    "book" | "reviews" | "join" | "wiki"
+  >("book");
 
   useEffect(() => {
     async function fetchData() {
@@ -65,6 +66,8 @@ export default function Home() {
       {/* Main Content */}
       {currentView === "join" ? (
         <JoinUs />
+      ) : currentView === "wiki" ? (
+        <WikiHome />
       ) : (
         <div className="flex justify-between items-start px-24">
           {/* Clock and List View */}
