@@ -1,7 +1,14 @@
 import FallingText from "./fallingText";
 import { MoveRight } from "lucide-react";
+import { useState, Dispatch, SetStateAction } from "react";
 
-export default function WikiHome() {
+interface WikiHomeProps {
+  onViewChange?: Dispatch<
+    SetStateAction<"book" | "reviews" | "join" | "wiki" | "wikiData">
+  >;
+}
+
+export default function WikiHome({ onViewChange }: WikiHomeProps) {
   return (
     <div className="flex flex-col min-h-screen bg-[#FCFADE] px-24 py-12">
       {/* Top Section - Split into Two Columns */}
@@ -51,17 +58,13 @@ export default function WikiHome() {
               <h3 className="text-lg font-black text-black/20">Tech Stack</h3>
               <p className="text-lg">Arweave, Bundler</p>
             </div>
-            <div className="flex justify-between">
-              <h3 className="text-lg font-black text-black/20">Objective</h3>
-              <p className="text-md ml-20 text-right">
-                Based on the data generated through daily operations, we explore
-                how to create a sustainable collaborative platform and assistive
-                tools for contemporary humanities researchers, writers, and
-                enthusiasts—a GitHub for humanities scholars.
-              </p>
-            </div>
             <div className="flex justify-end gap-4">
-              <h3 className="text-3xl font-black mt-10">Click to Enter</h3>
+              <button
+                className="text-3xl font-black mt-10"
+                onClick={() => onViewChange && onViewChange("wikiData")}
+              >
+                Click to Enter
+              </button>
               <MoveRight className="w-10 h-10 mt-10" />
             </div>
           </div>
@@ -166,7 +169,7 @@ export default function WikiHome() {
           </li>
           <p className="mt-2 text-2xl">
             <span className="font-bold">One-line entries</span> involve directly
-            extracting the author’s explicit definition of a concept from the
+            extracting the author's explicit definition of a concept from the
             text, while <span className="font-bold">Para-graph entries</span>{" "}
             allow contributors to interpret and elaborate on the original
             definition. <span className="font-bold">One-line entries</span> are
