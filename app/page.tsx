@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabaseClient";
 import JoinUs from "@/components/join/join-us";
 import WikiHome from "@/components/wiki/wikiHome";
 import WikiData from "@/components/wiki/wikiData";
+import WikiCard from "@/components/wiki/wikiCard";
 
 export default function Home() {
   const [selectedBookData, setSelectedBookData] = useState<BookclubData | null>(
@@ -23,8 +24,9 @@ export default function Home() {
   const [monthData, setMonthData] = useState<BookclubData[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<
-    "book" | "reviews" | "join" | "wiki" | "wikiData"
+    "book" | "reviews" | "join" | "wiki" | "wikiData" | "wikiDetail"
   >("book");
+  const [selectedWikiTitle, setSelectedWikiTitle] = useState<string>("");
 
   useEffect(() => {
     async function fetchData() {
@@ -51,6 +53,18 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // 处理词条详情查看
+  const handleViewDetail = (title: string) => {
+    console.log(`查看词条详情: ${title}`);
+    setSelectedWikiTitle(title);
+    setCurrentView("wikiDetail");
+  };
+
+  // 处理返回Wiki列表
+  const handleBackToWikiList = () => {
+    setCurrentView("wikiData");
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -70,7 +84,12 @@ export default function Home() {
       ) : currentView === "wiki" ? (
         <WikiHome onViewChange={setCurrentView} />
       ) : currentView === "wikiData" ? (
-        <WikiData />
+        <WikiData onViewDetail={handleViewDetail} />
+      ) : currentView === "wikiDetail" && selectedWikiTitle ? (
+        <WikiCard
+          title={selectedWikiTitle}
+          onBackToList={handleBackToWikiList}
+        />
       ) : (
         <div className="flex justify-between items-start px-24">
           {/* Clock and List View */}

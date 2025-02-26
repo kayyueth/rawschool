@@ -4,7 +4,9 @@ import { useState, Dispatch, SetStateAction } from "react";
 
 interface WikiHomeProps {
   onViewChange?: Dispatch<
-    SetStateAction<"book" | "reviews" | "join" | "wiki" | "wikiData">
+    SetStateAction<
+      "book" | "reviews" | "join" | "wiki" | "wikiData" | "wikiDetail"
+    >
   >;
 }
 

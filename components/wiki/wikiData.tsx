@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import {
   Carousel,
   CarouselContent,
@@ -47,6 +46,11 @@ interface ConceptCard {
   aiGenerated: boolean;
 }
 
+// WikiData组件接口
+interface WikiDataProps {
+  onViewDetail?: (title: string) => void;
+}
+
 // 翻转卡片样式
 const flipCardStyles = `
   .perspective-1000 {
@@ -68,10 +72,10 @@ const flipCardStyles = `
 
 const FlipCard = ({
   card,
-  onViewDetails,
+  onViewDetail,
 }: {
   card: ConceptCard;
-  onViewDetails: (title: string) => void;
+  onViewDetail: (title: string) => void;
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -81,7 +85,7 @@ const FlipCard = ({
 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation(); // 阻止事件冒泡
-    onViewDetails(card.title);
+    onViewDetail(card.title);
   };
 
   return (
@@ -137,9 +141,7 @@ const FlipCard = ({
   );
 };
 
-export default function WikiData() {
-  const router = useRouter();
-
+export default function WikiData({ onViewDetail }: WikiDataProps) {
   const [cards, setCards] = useState<ConceptCard[]>([]);
   const [filteredCards, setFilteredCards] = useState<ConceptCard[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -155,9 +157,15 @@ export default function WikiData() {
     setIsClient(true);
   }, []);
 
-  // 处理导航
+  // 处理导航 - 现在使用传入的回调函数
   const handleNavigate = (title: string) => {
-    router.push(`/wiki/${encodeURIComponent(title)}`);
+    if (onViewDetail) {
+      onViewDetail(title);
+    } else {
+      console.warn("onViewDetail prop is not provided");
+      // 可以添加一个默认行为，比如通过路由导航
+      // 或者不做任何操作
+    }
   };
 
   // 处理文档点击事件关闭下拉菜单
@@ -345,7 +353,7 @@ export default function WikiData() {
             <CarouselContent className="-ml-4">
               {filteredCards.map((card) => (
                 <CarouselItem key={card.id} className="pl-4 md:basis-1/3">
-                  <FlipCard card={card} onViewDetails={handleNavigate} />
+                  <FlipCard card={card} onViewDetail={handleNavigate} />
                 </CarouselItem>
               ))}
             </CarouselContent>
