@@ -17,7 +17,7 @@ interface WikiCard {
   content: string;
   definition: string;
   source: string;
-  property: string;
+  author: string;
   aiGenerated: boolean;
   createdDate: string;
   lastEditedTime: string;
@@ -90,7 +90,7 @@ export default function WikiCardComponent({
             content: data["内容"],
             definition: data["定义/解释/翻译校对"],
             source: data["来源Soucre / 章节 Chapter"],
-            property: data.Property,
+            author: data["Author"],
             aiGenerated: data["人工智能生成 AI-generated"],
             createdDate: data.Date,
             lastEditedTime: data["Last edited time"],
@@ -166,34 +166,34 @@ export default function WikiCardComponent({
               }
             }
 
-            let relatedByProperty = [];
+            let relatedByAuthor2 = [];
             try {
-              const { data: propertyData, error: relatedPropertyError } =
+              const { data: authorData2, error: relatedAuthorError2 } =
                 await supabase
                   .from("wiki")
                   .select("*")
-                  .eq("Property", data.Property)
+                  .eq("Author", data["Author"])
                   .neq("id", data.id)
                   .limit(5);
 
-              if (relatedPropertyError) {
+              if (relatedAuthorError2) {
                 console.error(
-                  "获取相关属性词条错误:",
-                  relatedPropertyError.message ||
-                    JSON.stringify(relatedPropertyError) ||
+                  "获取相同作者词条错误:",
+                  relatedAuthorError2.message ||
+                    JSON.stringify(relatedAuthorError2) ||
                     "未知错误"
                 );
               } else {
-                relatedByProperty = propertyData || [];
+                relatedByAuthor2 = authorData2 || [];
               }
             } catch (error) {
-              console.error("尝试获取相同属性词条时出错:", error);
+              console.error("尝试获取相同作者词条时出错:", error);
             }
 
             const combinedRelated = [
               ...(relatedBySource || []),
               ...(relatedByAuthor || []),
-              ...(relatedByProperty || []),
+              ...(relatedByAuthor2 || []),
             ];
             const uniqueRelated = Array.from(
               new Set(combinedRelated.map((item) => item.id))
@@ -210,7 +210,7 @@ export default function WikiCardComponent({
                   content: item["内容"],
                   definition: item["定义/解释/翻译校对"],
                   source: item["来源Soucre / 章节 Chapter"],
-                  property: item.Property,
+                  author: item["Author"],
                   aiGenerated: item["人工智能生成 AI-generated"],
                   createdDate: item.Date,
                   lastEditedTime: item["Last edited time"],
@@ -278,8 +278,8 @@ export default function WikiCardComponent({
               </div>
 
               <div className="col-span-2 md:col-span-1">
-                <p className="text-black/60 mb-1">Property</p>
-                <p className="text-xl">{wikiData.property}</p>
+                <p className="text-black/60 mb-1">Author</p>
+                <p className="text-xl">{wikiData.author}</p>
               </div>
 
               <div className="col-span-2 md:col-span-1">
@@ -369,7 +369,7 @@ export default function WikiCardComponent({
           content: data["内容"],
           definition: data["定义/解释/翻译校对"],
           source: data["来源Soucre / 章节 Chapter"],
-          property: data.Property,
+          author: data["Author"],
           aiGenerated: data["人工智能生成 AI-generated"],
           createdDate: data.Date,
           lastEditedTime: data["Last edited time"],
@@ -445,34 +445,34 @@ export default function WikiCardComponent({
             }
           }
 
-          let relatedByProperty = [];
+          let relatedByAuthor2 = [];
           try {
-            const { data: propertyData, error: relatedPropertyError } =
+            const { data: authorData2, error: relatedAuthorError2 } =
               await supabase
                 .from("wiki")
                 .select("*")
-                .eq("Property", data.Property)
+                .eq("Author", data["Author"])
                 .neq("id", data.id)
                 .limit(5);
 
-            if (relatedPropertyError) {
+            if (relatedAuthorError2) {
               console.error(
-                "获取相关属性词条错误:",
-                relatedPropertyError.message ||
-                  JSON.stringify(relatedPropertyError) ||
+                "获取相同作者词条错误:",
+                relatedAuthorError2.message ||
+                  JSON.stringify(relatedAuthorError2) ||
                   "未知错误"
               );
             } else {
-              relatedByProperty = propertyData || [];
+              relatedByAuthor2 = authorData2 || [];
             }
           } catch (error) {
-            console.error("尝试获取相同属性词条时出错:", error);
+            console.error("尝试获取相同作者词条时出错:", error);
           }
 
           const combinedRelated = [
             ...(relatedBySource || []),
             ...(relatedByAuthor || []),
-            ...(relatedByProperty || []),
+            ...(relatedByAuthor2 || []),
           ];
           const uniqueRelated = Array.from(
             new Set(combinedRelated.map((item) => item.id))
@@ -489,7 +489,7 @@ export default function WikiCardComponent({
                 content: item["内容"],
                 definition: item["定义/解释/翻译校对"],
                 source: item["来源Soucre / 章节 Chapter"],
-                property: item.Property,
+                author: item["Author"],
                 aiGenerated: item["人工智能生成 AI-generated"],
                 createdDate: item.Date,
                 lastEditedTime: item["Last edited time"],
