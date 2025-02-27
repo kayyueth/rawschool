@@ -23,6 +23,7 @@ interface WikiItem {
   "Last edited time": string;
   人工智能模型: string | null;
   内容: string;
+  Author: string;
 }
 
 interface ConceptCard {
@@ -137,6 +138,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
   const [concepts, setConcepts] = useState<string[]>([]);
   const [authors, setAuthors] = useState<string[]>([]);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [searchFeedback, setSearchFeedback] = useState<string>("");
 
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
@@ -165,9 +167,17 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
     };
   }, [commandOpen]);
 
+  const scrollToResults = () => {
+    const resultsSection = document.getElementById("results-section");
+    if (resultsSection) {
+      resultsSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleSearch = () => {
     if (!searchQuery.trim()) {
       setFilteredCards(cards);
+      setSearchFeedback("");
       return;
     }
 
@@ -175,19 +185,80 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
       (card) =>
         card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         card.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        card.frontContent.toLowerCase().includes(searchQuery.toLowerCase())
+        card.frontContent.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        card.source.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     setFilteredCards(filtered);
+
+    if (filtered.length === 0) {
+      setSearchFeedback(`未找到匹配"${searchQuery}"的结果`);
+    } else {
+      setSearchFeedback(`找到 ${filtered.length} 个匹配"${searchQuery}"的结果`);
+    }
+
+    setTimeout(scrollToResults, 100);
+
+    return filtered.length > 0;
   };
 
-  const handleCommandItemClick = (value: string) => {
+  const isAuthorSearchQuery = (query: string): boolean => {
+    const exactAuthorMatch = authors.some(
+      (author) => author.toLowerCase() === query.toLowerCase()
+    );
+
+    if (exactAuthorMatch) return true;
+
+    const exactConceptMatch = concepts.some(
+      (concept) => concept.toLowerCase() === query.toLowerCase()
+    );
+
+    if (exactConceptMatch) return false;
+
+    const authorMatches = authors.filter((author) =>
+      author.toLowerCase().includes(query.toLowerCase())
+    );
+
+    const conceptMatches = concepts.filter((concept) =>
+      concept.toLowerCase().includes(query.toLowerCase())
+    );
+
+    if (authorMatches.length > 0 && conceptMatches.length === 0) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const handleAuthorSearch = (authorName: string) => {
+    const filtered = cards.filter((card) =>
+      card.author.toLowerCase().includes(authorName.toLowerCase())
+    );
+    setFilteredCards(filtered);
+
+    if (filtered.length === 0) {
+      setSearchFeedback(`No results found for "${authorName}"`);
+    } else {
+      setSearchFeedback(`Found ${filtered.length} results for "${authorName}"`);
+    }
+
+    setCommandOpen(false);
+
+    setTimeout(scrollToResults, 100);
+  };
+
+  const handleCommandItemClick = (value: string, isAuthor: boolean = false) => {
     setSearchQuery(value);
     setCommandOpen(false);
-    handleSearch();
-    setTimeout(() => {
-      handleNavigate(value);
-    }, 100);
+
+    if (isAuthor) {
+      handleAuthorSearch(value);
+    } else {
+      handleSearch();
+      setTimeout(() => {
+        handleNavigate(value);
+      }, 100);
+    }
   };
 
   useEffect(() => {
@@ -208,8 +279,12 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
             frontContent: item["内容"],
             backContent: item["内容"],
             author:
-              item["人工智能模型"] ||
-              (item["人工智能生成 AI-generated"] ? "AI生成" : "人工编辑"),
+              item["Author"] ||
+              (item["人工智能生成 AI-generated"] && item["人工智能模型"]
+                ? item["人工智能模型"]
+                : item["人工智能生成 AI-generated"]
+                ? "AI生成"
+                : "人工编辑"),
             source: item["来源Soucre / 章节 Chapter"],
             type: item["定义/解释/翻译校对"],
             aiGenerated: item["人工智能生成 AI-generated"],
@@ -218,7 +293,6 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
           setCards(formattedCards);
           setFilteredCards(formattedCards);
 
-          // 提取所有概念和作者用于搜索建议
           const allConcepts = [
             ...new Set(data.map((item) => item["词条名称"])),
           ];
@@ -227,12 +301,14 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
           const allAuthors = [
             ...new Set(
               data
-                .map((item) =>
-                  item["人工智能模型"]
-                    ? item["人工智能模型"]
-                    : item["人工智能生成 AI-generated"]
-                    ? "AI生成"
-                    : "人工编辑"
+                .map(
+                  (item) =>
+                    item["Author"] ||
+                    (item["人工智能生成 AI-generated"] && item["人工智能模型"]
+                      ? item["人工智能模型"]
+                      : item["人工智能生成 AI-generated"]
+                      ? "AI生成"
+                      : "人工编辑")
                 )
                 .filter(Boolean)
             ),
@@ -277,14 +353,35 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
                     setCommandOpen(false);
+                  } else if (e.key === "Enter") {
+                    if (isAuthorSearchQuery(searchQuery)) {
+                      handleAuthorSearch(searchQuery);
+                    } else {
+                      const hasResults = handleSearch();
+
+                      if (searchQuery.trim() && hasResults) {
+                        const exactMatch = cards.find(
+                          (card) =>
+                            card.title.toLowerCase() ===
+                            searchQuery.toLowerCase()
+                        );
+
+                        if (exactMatch) {
+                          handleNavigate(exactMatch.title);
+                        } else if (filteredCards.length > 0) {
+                          handleNavigate(filteredCards[0].title);
+                        }
+                      }
+                    }
+
+                    setCommandOpen(false);
                   }
                 }}
               />
             </div>
-            {commandOpen && (
+            {commandOpen && searchQuery.trim() && (
               <div className="absolute left-0 right-0 top-[40px] z-50 max-h-[300px] overflow-y-auto border border-black shadow-lg bg-[#FCFADE]">
-                {searchQuery &&
-                !concepts.filter((c) =>
+                {!concepts.filter((c) =>
                   c.toLowerCase().includes(searchQuery.toLowerCase())
                 ).length &&
                 !authors.filter((a) =>
@@ -314,7 +411,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
                             className="cursor-pointer p-2 hover:bg-black/10 rounded-sm text-sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleCommandItemClick(concept);
+                              handleCommandItemClick(concept, false);
                             }}
                             onMouseDown={(e) => e.preventDefault()}
                           >
@@ -337,14 +434,14 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
                                   .toLowerCase()
                                   .includes(searchQuery.toLowerCase())
                             )
-                            .slice(0, 3)
+                            .slice(0, 5)
                             .map((author) => (
                               <div
                                 key={author}
                                 className="cursor-pointer p-2 hover:bg-black/10 rounded-sm text-sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleCommandItemClick(author);
+                                  handleCommandItemClick(author, true);
                                 }}
                                 onMouseDown={(e) => e.preventDefault()}
                               >
@@ -362,9 +459,23 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
           <Button
             className="h-[42px] bg-black text-white font-black text-sm rounded-l-none rounded-r-md hover:bg-black/60"
             onClick={() => {
-              handleSearch();
-              if (searchQuery.trim()) {
-                handleNavigate(searchQuery);
+              if (isAuthorSearchQuery(searchQuery)) {
+                handleAuthorSearch(searchQuery);
+              } else {
+                const hasResults = handleSearch();
+
+                if (searchQuery.trim() && hasResults) {
+                  const exactMatch = cards.find(
+                    (card) =>
+                      card.title.toLowerCase() === searchQuery.toLowerCase()
+                  );
+
+                  if (exactMatch) {
+                    handleNavigate(exactMatch.title);
+                  } else if (filteredCards.length > 0) {
+                    handleNavigate(filteredCards[0].title);
+                  }
+                }
               }
             }}
           >
@@ -373,10 +484,13 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
         </div>
       </div>
 
-      {/* Carousel */}
-      <div className="mt-24 mb-20">
+      <div className="mt-16 mb-4 text-center text-lg">
+        {searchFeedback && <p>{searchFeedback}</p>}
+      </div>
+
+      <div id="results-section" className="mt-8 mb-20">
         <h2 className="text-3xl font-bold mb-8 text-center">
-          Featured Concepts
+          {searchQuery.trim() ? "搜索结果" : "Featured Concepts"}
         </h2>
         {filteredCards.length > 0 ? (
           <Carousel className="w-full max-w-5xl mx-auto">
