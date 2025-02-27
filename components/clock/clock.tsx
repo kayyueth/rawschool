@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Center from "./center";
 import Dot from "./dot";
 import Line from "./line";
@@ -13,29 +13,12 @@ interface ClockProps {
   monthData: BookclubData[];
 }
 
+// 设置固定大小
+const CLOCK_SIZE = 750; // 时钟的固定尺寸 (px)
+const BASE_RADIUS = CLOCK_SIZE * 0.07; // 计算基础半径
+
 export default function Clock({ onDataSelect, monthData }: ClockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [size, setSize] = useState({ width: 0, height: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const updateSize = () => {
-      if (containerRef.current) {
-        const container = containerRef.current;
-        const width = container.clientWidth;
-        const height = container.clientHeight;
-        const minSize = Math.min(width, height);
-        setSize({ width: minSize, height: minSize });
-      }
-    };
-
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
-  }, []);
-
-  // 计算基础半径（以容器大小的比例计算）
-  const baseRadius = size.width * 0.09;
 
   // 获取相同月份的所有索引
   const getMonthIndices = (month: string) => {
@@ -63,39 +46,49 @@ export default function Clock({ onDataSelect, monthData }: ClockProps) {
       : [];
 
   return (
-    <div ref={containerRef} style={{ aspectRatio: "1/1" }}>
-      {/* center */}
-      <Center radius={baseRadius} text={"RAW SCHOOL"} />
-      <Line
-        startRadius={baseRadius}
-        endRadius={baseRadius * 2.67}
-        segments={36}
-      />
-      <Dot radius={baseRadius * 1.33} dotSpeed={0.002} text="YEAR" />
-      <Dot radius={baseRadius * 1.67} dotSpeed={-0.003} text="SEASON" />
-      <Dot radius={baseRadius * 2} dotSpeed={0.004} text="MONTH" />
-      <Dot radius={baseRadius * 2.33} dotSpeed={-0.005} text="WEEK" />
-      <Dot radius={baseRadius * 2.67} dotSpeed={0.006} text="DAY" />
-      {/* outer ring */}
-      <Thick
-        radius={baseRadius * 3.25}
-        texts={monthData.map((item) => item.month)}
-        setSelectedIndex={handleSelectionChange}
-      />
-      <Name
-        radius={baseRadius * 3.67}
-        text={monthData.map((item) => item.people)}
-        selectedIndex={selectedIndex}
-        selectedIndices={selectedMonthIndices}
-        onSelect={handleSelectionChange}
-      />
-      <Title
-        radius={baseRadius * 4.83}
-        text={monthData.map((item) => item.title)}
-        selectedIndex={selectedIndex}
-        selectedIndices={selectedMonthIndices}
-        onSelect={handleSelectionChange}
-      />
+    <div className="relative min-w-[750px] min-h-[750px] w-[750px] h-[750px] mx-auto">
+      <div
+        style={{
+          width: CLOCK_SIZE,
+          height: CLOCK_SIZE,
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      >
+        {/* center */}
+        <Center radius={BASE_RADIUS} text={"RAW SCHOOL"} />
+        <Line
+          startRadius={BASE_RADIUS}
+          endRadius={BASE_RADIUS * 2.67}
+          segments={36}
+        />
+        <Dot radius={BASE_RADIUS * 1.33} dotSpeed={0.002} text="YEAR" />
+        <Dot radius={BASE_RADIUS * 1.67} dotSpeed={-0.003} text="SEASON" />
+        <Dot radius={BASE_RADIUS * 2} dotSpeed={0.004} text="MONTH" />
+        <Dot radius={BASE_RADIUS * 2.33} dotSpeed={-0.005} text="WEEK" />
+        <Dot radius={BASE_RADIUS * 2.67} dotSpeed={0.006} text="DAY" />
+        {/* outer ring */}
+        <Thick
+          radius={BASE_RADIUS * 3.25}
+          texts={monthData.map((item) => item.month)}
+          setSelectedIndex={handleSelectionChange}
+        />
+        <Name
+          radius={BASE_RADIUS * 3.67}
+          text={monthData.map((item) => item.people)}
+          selectedIndex={selectedIndex}
+          selectedIndices={selectedMonthIndices}
+          onSelect={handleSelectionChange}
+        />
+        <Title
+          radius={BASE_RADIUS * 4.83}
+          text={monthData.map((item) => item.title)}
+          selectedIndex={selectedIndex}
+          selectedIndices={selectedMonthIndices}
+          onSelect={handleSelectionChange}
+        />
+      </div>
     </div>
   );
 }

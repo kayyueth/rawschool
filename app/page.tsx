@@ -91,9 +91,9 @@ export default function Home() {
           onBackToList={handleBackToWikiList}
         />
       ) : (
-        <div className="flex justify-between items-start px-24">
-          {/* Clock and List View */}
-          <div className="w-[50%] relative mt-10">
+        <div className="flex flex-col md:flex-row justify-start items-start px-4 md:px-12 lg:px-24 relative">
+          {/* Clock and List View - 固定宽度确保不会挤压 */}
+          <div className="w-full md:w-auto relative mt-10">
             {/* Toggle and Controls */}
             <div className="absolute z-10 flex items-center space-x-4 w-full">
               <div className="flex items-center space-x-2">
@@ -121,13 +121,16 @@ export default function Home() {
               </div>
             ) : (
               <>
-                <div className="flex flex-col h-[1000px]">
-                  <Clock
-                    onDataSelect={setSelectedBookData}
-                    monthData={monthData}
-                  />
+                <div className="flex flex-col h-auto">
+                  {/* 添加溢出控制，确保在小屏幕上不会超出容器 */}
+                  <div className="overflow-auto">
+                    <Clock
+                      onDataSelect={setSelectedBookData}
+                      monthData={monthData}
+                    />
+                  </div>
                   <div className="flex-grow"></div>
-                  <div className="text-left text-black">
+                  <div className="text-left text-black mt-4">
                     <p className="font-semibold">Raw Bookclub Calendar</p>
                     <p className="mb-10">Updated: Feb 6, 2025</p>
                   </div>
@@ -136,13 +139,24 @@ export default function Home() {
             )}
           </div>
 
-          {/* Label */}
-          <div className="ml-20 flex h-screen">
+          {/* 添加一个固定的间距容器，确保Clock和Label之间始终有空间 */}
+          <div className="w-8 md:w-16 lg:w-20 flex-shrink-0 h-2 md:h-full"></div>
+
+          {/* Label - 绝对定位改为相对定位，确保在各种屏幕尺寸上不会重叠 */}
+          <div className="md:flex h-screen hidden">
             <Label />
           </div>
 
+          {/* 小屏幕上的水平Label */}
+          <div className="md:hidden w-full mt-8 border-t-2 border-b-2 border-black py-2 flex justify-between">
+            <span>Feb 15th, 2025</span>
+            <span className="font-black">RADICAL CRYPTOGRAPHY</span>
+          </div>
+
           {/* Content */}
-          <Content selectedData={selectedBookData} />
+          <div className="w-full md:w-auto mt-8 ml-10 md:mt-0">
+            <Content selectedData={selectedBookData} />
+          </div>
         </div>
       )}
     </div>

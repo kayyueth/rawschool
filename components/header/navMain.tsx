@@ -12,7 +12,7 @@ export default function NavMain({ onViewChange }: NavMainProps) {
           Bookclub Calender
         </button>
         <button onClick={() => onViewChange?.("wiki")} className="ml-8">
-          DeSci Wiki
+          AmbiNet Project
         </button>
       </div>
 

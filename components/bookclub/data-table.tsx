@@ -55,7 +55,7 @@ export function DataTable({ data, onSelect }: DataTableProps) {
   ];
 
   return (
-    <div className="w-full h-[800px] overflow-auto rounded-md border-black mt-16">
+    <div className="min-w-[600px] min-h-[600px] w-[600px] h-[600px] mx-auto overflow-auto rounded-md border-black mt-16">
       <div className="bg-[#FCFADE] p-6 border-b border-black space-y-4">
         {/* Search and Column Toggle */}
         <div className="flex justify-between items-center gap-4">

@@ -208,7 +208,7 @@ export default function Content({ selectedData }: ContentProps) {
   };
 
   return (
-    <div className="mt-10 w-[35%] text-right">
+    <div className="mt-10 text-left">
       {!showReviews ? (
         <>
           <button
@@ -217,12 +217,12 @@ export default function Content({ selectedData }: ContentProps) {
           >
             BOOKCLUB REVIEW <ArrowRight className="ml-2" />
           </button>
-          <h3 className="w-1/2 border border-black rounded-full p-2 text-center text-xl mt-40 ml-auto">
+          <h3 className="w-[250px] border border-black rounded-full p-2 text-center text-xl mt-40 ml-10">
             {content.season}
           </h3>
           <h1 className="text-2xl font-bold mt-5 ml-10">{content.title}</h1>
-          <p className="text-xl mt-2">Guest: {content.people}</p>
-          <p className="mt-2 mb-6 ml-10">{content.description}</p>
+          <p className="text-xl mt-2 ml-10">Guest: {content.people}</p>
+          <p className="mt-2 mb-6 ml-10 max-w-[800px]">{content.description}</p>
         </>
       ) : (
         <div className="h-[800px] flex flex-col">
