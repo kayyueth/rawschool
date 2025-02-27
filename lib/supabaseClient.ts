@@ -1,13 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
+import { logger } from "./logger";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-console.log("Supabase URL:", supabaseUrl);
-console.log("Supabase Key:", supabaseAnonKey ? "存在" : "不存在");
-
+// 检查环境变量
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase environment variables");
+  const errorMessage = "缺少Supabase环境变量配置";
+  logger.error(errorMessage);
+  throw new Error(errorMessage);
 }
 
+// 创建并导出Supabase客户端
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
