@@ -12,7 +12,6 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
-// 定义Wiki表项类型
 interface WikiItem {
   id: string;
   词条名称: string;
@@ -26,7 +25,6 @@ interface WikiItem {
   内容: string;
 }
 
-// 调整卡片数据结构以匹配 wiki 表
 interface ConceptCard {
   id: string;
   title: string;
@@ -38,12 +36,10 @@ interface ConceptCard {
   aiGenerated: boolean;
 }
 
-// WikiData组件接口
 interface WikiDataProps {
   onViewDetail?: (title: string) => void;
 }
 
-// 翻转卡片样式
 const flipCardStyles = `
   .perspective-1000 {
     perspective: 1000px;
@@ -105,7 +101,7 @@ const FlipCard = ({
                 className="bg-black text-white px-4 py-1 rounded hover:bg-black/70 transition-colors"
                 onClick={handleViewDetails}
               >
-                查看详情
+                View Details
               </button>
             </div>
           </div>
@@ -123,7 +119,7 @@ const FlipCard = ({
                 className="mt-2 bg-white text-black px-4 py-1 rounded hover:bg-white/70 transition-colors"
                 onClick={handleViewDetails}
               >
-                查看完整内容
+                View Full Content
               </button>
             </div>
           </div>
@@ -142,27 +138,21 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
   const [authors, setAuthors] = useState<string[]>([]);
   const [commandOpen, setCommandOpen] = useState(false);
 
-  // 客户端挂载检测
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // 处理导航 - 现在使用传入的回调函数
   const handleNavigate = (title: string) => {
     if (onViewDetail) {
       onViewDetail(title);
     } else {
       console.warn("onViewDetail prop is not provided");
-      // 可以添加一个默认行为，比如通过路由导航
-      // 或者不做任何操作
     }
   };
 
-  // 处理文档点击事件关闭下拉菜单
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // 只有当点击发生在搜索框外部时才关闭菜单
       const target = event.target as Element;
       if (commandOpen && !target.closest(".flex-1")) {
         setCommandOpen(false);
@@ -175,7 +165,6 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
     };
   }, [commandOpen]);
 
-  // 处理搜索提交
   const handleSearch = () => {
     if (!searchQuery.trim()) {
       setFilteredCards(cards);
@@ -192,18 +181,15 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
     setFilteredCards(filtered);
   };
 
-  // 处理菜单项点击
   const handleCommandItemClick = (value: string) => {
     setSearchQuery(value);
     setCommandOpen(false);
-    handleSearch(); // 执行搜索以更新过滤结果
-    // 延迟导航以确保状态更新完成
+    handleSearch();
     setTimeout(() => {
       handleNavigate(value);
     }, 100);
   };
 
-  // 从 Supabase 获取数据
   useEffect(() => {
     async function fetchWikiData() {
       try {
@@ -216,7 +202,6 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
         }
 
         if (data) {
-          // 将 Supabase 数据转换为 ConceptCard 结构
           const formattedCards: ConceptCard[] = data.map((item: WikiItem) => ({
             id: item.id,
             title: item["词条名称"],
@@ -275,14 +260,13 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
           for humanities scholars.
         </p>
 
-        {/* 自定义搜索框和下拉菜单 */}
         <div className="flex w-[600px] relative">
           <div className="flex-1 border border-black rounded-l-md overflow-visible bg-[#FCFADE] relative">
             <div className="flex items-center border-b px-3">
               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
               <input
                 type="text"
-                placeholder="搜索概念、作者或关键词..."
+                placeholder="Search concepts, authors, or keywords..."
                 className="flex h-[40px] w-full bg-[#FCFADE] text-black py-3 text-sm outline-none placeholder:text-black/50"
                 value={searchQuery}
                 onChange={(e) => {
@@ -306,12 +290,14 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
                 !authors.filter((a) =>
                   a.toLowerCase().includes(searchQuery.toLowerCase())
                 ).length ? (
-                  <div className="py-6 text-center text-sm">未找到相关结果</div>
+                  <div className="py-6 text-center text-sm">
+                    No results found
+                  </div>
                 ) : (
                   <>
                     <div className="p-1">
                       <div className="px-2 py-1.5 text-xs font-medium text-black/50">
-                        常见概念
+                        Trendy Concepts
                       </div>
                       {concepts
                         .filter(
@@ -341,7 +327,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
                         <div className="h-px bg-black/20 -mx-1"></div>
                         <div className="p-1">
                           <div className="px-2 py-1.5 text-xs font-medium text-black/50">
-                            热门作者
+                            Popular Authors
                           </div>
                           {authors
                             .filter(
@@ -374,23 +360,24 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
             )}
           </div>
           <Button
-            className="h-[40px] bg-black text-white font-black text-sm rounded-l-none rounded-r-md hover:bg-black/60"
+            className="h-[42px] bg-black text-white font-black text-sm rounded-l-none rounded-r-md hover:bg-black/60"
             onClick={() => {
               handleSearch();
-              // 如果有搜索词，导航到词条页面
               if (searchQuery.trim()) {
                 handleNavigate(searchQuery);
               }
             }}
           >
-            搜索
+            Search
           </Button>
         </div>
       </div>
 
-      {/* 结果区域 - Carousel */}
+      {/* Carousel */}
       <div className="mt-24 mb-20">
-        <h2 className="text-3xl font-bold mb-8 text-center">精选概念</h2>
+        <h2 className="text-3xl font-bold mb-8 text-center">
+          Featured Concepts
+        </h2>
         {filteredCards.length > 0 ? (
           <Carousel className="w-full max-w-5xl mx-auto">
             <CarouselContent className="-ml-4">
@@ -407,7 +394,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
           </Carousel>
         ) : (
           <div className="text-center text-xl">
-            没有找到匹配的概念，请尝试其他关键词
+            No matching concepts found, please try other keywords
           </div>
         )}
       </div>
@@ -421,7 +408,5 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
       </div>
     );
   }
-
-  // 只在客户端渲染时添加路由逻辑
   return isClient ? content : content;
 }
