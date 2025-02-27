@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -8,17 +8,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 // 定义Wiki表项类型
 interface WikiItem {
@@ -84,7 +76,7 @@ const FlipCard = ({
   };
 
   const handleViewDetails = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 阻止事件冒泡
+    e.stopPropagation();
     onViewDetail(card.title);
   };
 
@@ -149,7 +141,6 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
   const [concepts, setConcepts] = useState<string[]>([]);
   const [authors, setAuthors] = useState<string[]>([]);
   const [commandOpen, setCommandOpen] = useState(false);
-  const commandRef = React.useRef<HTMLDivElement>(null);
 
   // 客户端挂载检测
   const [isClient, setIsClient] = useState(false);
@@ -171,10 +162,9 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
   // 处理文档点击事件关闭下拉菜单
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        commandRef.current &&
-        !commandRef.current.contains(event.target as Node)
-      ) {
+      // 只有当点击发生在搜索框外部时才关闭菜单
+      const target = event.target as Element;
+      if (commandOpen && !target.closest(".flex-1")) {
         setCommandOpen(false);
       }
     };
@@ -183,7 +173,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [commandOpen]);
 
   // 处理搜索提交
   const handleSearch = () => {
@@ -202,11 +192,15 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
     setFilteredCards(filtered);
   };
 
-  // 处理命令项点击
+  // 处理菜单项点击
   const handleCommandItemClick = (value: string) => {
     setSearchQuery(value);
     setCommandOpen(false);
-    handleNavigate(value);
+    handleSearch(); // 执行搜索以更新过滤结果
+    // 延迟导航以确保状态更新完成
+    setTimeout(() => {
+      handleNavigate(value);
+    }, 100);
   };
 
   // 从 Supabase 获取数据
@@ -281,54 +275,103 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
           for humanities scholars.
         </p>
 
-        {/* Command 搜索框带提交按钮 */}
+        {/* 自定义搜索框和下拉菜单 */}
         <div className="flex w-[600px] relative">
-          <div className="flex-1 border border-black rounded-l-md overflow-visible bg-[#FCFADE]">
-            <Command
-              className="bg-[#FCFADE]"
-              shouldFilter={true}
-              ref={commandRef}
-            >
-              <CommandInput
+          <div className="flex-1 border border-black rounded-l-md overflow-visible bg-[#FCFADE] relative">
+            <div className="flex items-center border-b px-3">
+              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+              <input
+                type="text"
                 placeholder="搜索概念、作者或关键词..."
-                className="h-[40px] bg-[#FCFADE] text-black"
+                className="flex h-[40px] w-full bg-[#FCFADE] text-black py-3 text-sm outline-none placeholder:text-black/50"
                 value={searchQuery}
-                onValueChange={setSearchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCommandOpen(true);
+                }}
                 onFocus={() => setCommandOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setCommandOpen(false);
+                  }
+                }}
               />
-              {commandOpen && (
-                <CommandList className="bg-[#FCFADE] absolute left-0 right-0 top-[40px] z-50 max-h-[300px] overflow-y-auto border border-black shadow-lg">
-                  <CommandEmpty>未找到相关结果</CommandEmpty>
-                  <CommandGroup heading="常见概念">
-                    {concepts.slice(0, 5).map((concept) => (
-                      <CommandItem
-                        key={concept}
-                        className="cursor-pointer hover:bg-black/10 p-2"
-                        onSelect={() => handleCommandItemClick(concept)}
-                      >
-                        {concept}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                  {authors.length > 0 && (
-                    <>
-                      <CommandSeparator />
-                      <CommandGroup heading="热门作者">
-                        {authors.slice(0, 3).map((author) => (
-                          <CommandItem
-                            key={author}
-                            className="cursor-pointer hover:bg-black/10 p-2"
-                            onSelect={() => handleCommandItemClick(author)}
+            </div>
+            {commandOpen && (
+              <div className="absolute left-0 right-0 top-[40px] z-50 max-h-[300px] overflow-y-auto border border-black shadow-lg bg-[#FCFADE]">
+                {searchQuery &&
+                !concepts.filter((c) =>
+                  c.toLowerCase().includes(searchQuery.toLowerCase())
+                ).length &&
+                !authors.filter((a) =>
+                  a.toLowerCase().includes(searchQuery.toLowerCase())
+                ).length ? (
+                  <div className="py-6 text-center text-sm">未找到相关结果</div>
+                ) : (
+                  <>
+                    <div className="p-1">
+                      <div className="px-2 py-1.5 text-xs font-medium text-black/50">
+                        常见概念
+                      </div>
+                      {concepts
+                        .filter(
+                          (concept) =>
+                            !searchQuery ||
+                            concept
+                              .toLowerCase()
+                              .includes(searchQuery.toLowerCase())
+                        )
+                        .slice(0, 5)
+                        .map((concept) => (
+                          <div
+                            key={concept}
+                            className="cursor-pointer p-2 hover:bg-black/10 rounded-sm text-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCommandItemClick(concept);
+                            }}
+                            onMouseDown={(e) => e.preventDefault()}
                           >
-                            {author}
-                          </CommandItem>
+                            {concept}
+                          </div>
                         ))}
-                      </CommandGroup>
-                    </>
-                  )}
-                </CommandList>
-              )}
-            </Command>
+                    </div>
+                    {authors.length > 0 && (
+                      <>
+                        <div className="h-px bg-black/20 -mx-1"></div>
+                        <div className="p-1">
+                          <div className="px-2 py-1.5 text-xs font-medium text-black/50">
+                            热门作者
+                          </div>
+                          {authors
+                            .filter(
+                              (author) =>
+                                !searchQuery ||
+                                author
+                                  .toLowerCase()
+                                  .includes(searchQuery.toLowerCase())
+                            )
+                            .slice(0, 3)
+                            .map((author) => (
+                              <div
+                                key={author}
+                                className="cursor-pointer p-2 hover:bg-black/10 rounded-sm text-sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCommandItemClick(author);
+                                }}
+                                onMouseDown={(e) => e.preventDefault()}
+                              >
+                                {author}
+                              </div>
+                            ))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
           <Button
             className="h-[40px] bg-black text-white font-black text-sm rounded-l-none rounded-r-md hover:bg-black/60"
