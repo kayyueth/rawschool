@@ -196,8 +196,10 @@ export default function Content({ selectedData }: ContentProps) {
     }
   };
 
-  if (loading) return <div>loading...</div>;
-  if (!content) return <div>no content</div>;
+  if (loading)
+    return <div className="text-2xl flex mt-20 ml-10">loading...</div>;
+  if (!content)
+    return <div className="text-2xl flex mt-20 ml-10">no content</div>;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
