@@ -1,22 +1,22 @@
 "use client";
 
-import { Globe, Link2, LogOut, User } from "lucide-react";
+import { Globe, Link2, LogOut, User, ScanFace } from "lucide-react";
 import { useWeb3 } from "@/lib/web3Context";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import ProfileView from "@/components/profile/ProfileView";
 
 export default function NavSub() {
   const {
     account,
     isConnecting,
     isConnected,
-    isAuthenticated,
     error,
     connectWallet,
     disconnectWallet,
-    authenticateWallet,
   } = useWeb3();
   const [showMenu, setShowMenu] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Format address to show only first 6 and last 4 characters
@@ -43,13 +43,18 @@ export default function NavSub() {
     setShowMenu(!showMenu);
   };
 
+  const handleShowProfile = () => {
+    setShowProfile(true);
+    setShowMenu(false);
+  };
+
   // 处理连接钱包
   const handleConnectWallet = async () => {
     try {
       await connectWallet();
-      toast.success("钱包连接成功");
+      toast.success("Wallet connected successfully");
     } catch (err) {
-      toast.error("连接钱包失败");
+      toast.error("Failed to connect wallet");
     }
   };
 
@@ -57,31 +62,31 @@ export default function NavSub() {
   const handleDisconnect = async () => {
     try {
       await disconnectWallet();
-      toast.success("已断开连接");
+      toast.success("Disconnected successfully");
       setShowMenu(false);
     } catch (err) {
-      toast.error("断开连接失败");
+      toast.error("Failed to disconnect");
     }
   };
 
   return (
-    <div className="flex bg-black h-12 ml-20 mr-20 items-center justify-between">
-      <a
-        href="/about"
-        className="flex text-[#FCFADE] font-semibold text-lg ml-8"
-      >
-        <Globe className="w-5 h-5 mr-2 mt-1" /> ENGLISH
-      </a>
+    <div className="flex justify-between items-center py-4 px-6 bg-black ml-20 mr-20">
+      <div className="flex items-center">
+        <Globe className="text-[#FCFADE] w-6 h-6 mr-2" />
+        <span className="text-[#FCFADE] font-semibold text-lg">
+          English Language
+        </span>
+      </div>
 
-      <div className="relative" ref={menuRef}>
+      <div className="relative">
         {!isConnected ? (
           <button
             onClick={handleConnectWallet}
-            className="flex text-[#FCFADE] font-semibold text-lg mr-6 hover:text-gray-300 transition-colors"
+            className="flex text-[#FCFADE] font-semibold text-lg hover:text-gray-300 transition-colors"
             disabled={isConnecting}
           >
             <Link2 className="w-6 h-6 mr-2 mt-1" />
-            {isConnecting ? "连接中..." : "Connect Wallet"}
+            {isConnecting ? "Connecting..." : "Connect Wallet"}
           </button>
         ) : (
           <div className="flex items-center">
@@ -90,19 +95,29 @@ export default function NavSub() {
             </span>
             <button
               onClick={toggleMenu}
-              className="flex text-[#FCFADE] font-semibold text-sm mr-6 hover:text-gray-300 transition-colors"
+              className="flex text-[#FCFADE] font-semibold text-sm hover:text-gray-300 transition-colors"
             >
-              <User className="w-5 h-5 mr-1" />
+              <ScanFace className="w-5 h-5 mr-1" />
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 top-8 bg-black border border-gray-700 rounded shadow-lg z-10">
+              <div
+                ref={menuRef}
+                className="absolute right-0 top-8 bg-black border border-gray-700 rounded shadow-lg z-10"
+              >
+                <button
+                  onClick={handleShowProfile}
+                  className="flex items-center w-full px-4 py-2 text-[#FCFADE] hover:bg-gray-800 transition-colors"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </button>
                 <button
                   onClick={handleDisconnect}
                   className="flex items-center w-full px-4 py-2 text-[#FCFADE] hover:bg-gray-800 transition-colors"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  断开连接
+                  Unconnect
                 </button>
               </div>
             )}
@@ -115,6 +130,33 @@ export default function NavSub() {
           </div>
         )}
       </div>
+
+      {showProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-start overflow-y-auto pt-16">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 relative">
+            <button
+              onClick={() => setShowProfile(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+            <ProfileView />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
