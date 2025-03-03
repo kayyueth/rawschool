@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -11,6 +11,8 @@ import {
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { CreateWikiButton } from "./wikiEditor";
+import { useWeb3 } from "@/lib/web3Context";
 
 interface WikiItem {
   id: string;
@@ -141,6 +143,9 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
   const [searchFeedback, setSearchFeedback] = useState<string>("");
 
   const [isClient, setIsClient] = useState(false);
+  const commandRef = useRef<HTMLDivElement>(null);
+  const { isConnected } = useWeb3();
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -482,6 +487,52 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
             Search
           </Button>
         </div>
+
+        {/* Add Card 按钮 - 仅在钱包连接时显示 */}
+        {isConnected && (
+          <div className="absolute right-20 top-30">
+            <CreateWikiButton
+              onSave={() => {
+                // 保存后刷新数据
+                setIsLoading(true);
+                // 重新获取数据
+                async function refreshData() {
+                  try {
+                    const { data, error } = await supabase
+                      .from("wiki")
+                      .select("*")
+                      .order("Date", { ascending: false });
+
+                    if (error) throw error;
+
+                    if (data) {
+                      // 转换数据格式
+                      const formattedCards = data.map((item) => ({
+                        id: item.id,
+                        title: item.词条名称,
+                        frontContent: item["定义/解释/翻译校对"],
+                        backContent: item.内容,
+                        author: item.Author,
+                        source: item["来源Soucre / 章节 Chapter"],
+                        type: item.Property || "concept",
+                        aiGenerated: item["人工智能生成 AI-generated"],
+                      }));
+
+                      setCards(formattedCards);
+                      setFilteredCards(formattedCards);
+                    }
+                  } catch (err) {
+                    console.error("Error fetching wiki data:", err);
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }
+
+                refreshData();
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <div className="mt-16 mb-4 text-center text-lg">

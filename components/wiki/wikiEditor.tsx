@@ -150,7 +150,7 @@ export default function WikiEditor({
     </Button>
   ) : (
     <Button variant="outline" className="flex items-center gap-2 bg-[#FCFADE]">
-      <Plus className="h-4 w-4" /> 添加新条目
+      <Plus className="h-4 w-4" /> Add New Entry
     </Button>
   );
 
@@ -167,7 +167,7 @@ export default function WikiEditor({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? "编辑 Wiki 条目" : "添加新 Wiki 条目"}
+            {isEdit ? "Edit Wiki Entry" : "Add New Wiki Entry"}
           </DialogTitle>
         </DialogHeader>
 
