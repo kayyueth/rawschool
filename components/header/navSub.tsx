@@ -9,9 +9,11 @@ export default function NavSub() {
     account,
     isConnecting,
     isConnected,
+    isAuthenticated,
     error,
     connectWallet,
     disconnectWallet,
+    authenticateWallet,
   } = useWeb3();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -40,6 +42,22 @@ export default function NavSub() {
     setShowMenu(!showMenu);
   };
 
+  // 处理连接钱包
+  const handleConnectWallet = async () => {
+    await connectWallet();
+  };
+
+  // 处理认证钱包
+  const handleAuthenticateWallet = async () => {
+    await authenticateWallet();
+  };
+
+  // 处理断开连接
+  const handleDisconnect = async () => {
+    await disconnectWallet();
+    setShowMenu(false);
+  };
+
   return (
     <div className="flex bg-black h-12 ml-20 mr-20 items-center justify-between">
       <a
@@ -52,13 +70,26 @@ export default function NavSub() {
       <div className="relative" ref={menuRef}>
         {!isConnected ? (
           <button
-            onClick={connectWallet}
+            onClick={handleConnectWallet}
             className="flex text-[#FCFADE] font-semibold text-lg mr-6 hover:text-gray-300 transition-colors"
             disabled={isConnecting}
           >
             <Link2 className="w-6 h-6 mr-2 mt-1" />
-            {isConnecting ? "Connecting..." : "Connect Wallet"}
+            {isConnecting ? "连接中..." : "Connect Wallet"}
           </button>
+        ) : !isAuthenticated ? (
+          <div className="flex items-center">
+            <span className="text-[#FCFADE] text-sm mr-2">
+              {formatAddress(account || "")}
+            </span>
+            <button
+              onClick={handleAuthenticateWallet}
+              className="flex text-[#FCFADE] font-semibold text-sm mr-6 bg-green-600 hover:bg-green-700 px-2 py-1 rounded transition-colors"
+              disabled={isConnecting}
+            >
+              {isConnecting ? "认证中..." : "认证钱包"}
+            </button>
+          </div>
         ) : (
           <>
             <button
@@ -80,10 +111,7 @@ export default function NavSub() {
                     Profile
                   </a>
                   <button
-                    onClick={() => {
-                      disconnectWallet();
-                      setShowMenu(false);
-                    }}
+                    onClick={handleDisconnect}
                     className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
@@ -93,6 +121,12 @@ export default function NavSub() {
               </div>
             )}
           </>
+        )}
+
+        {error && (
+          <div className="absolute right-0 mt-1 bg-red-100 text-red-600 text-xs p-1 rounded">
+            {error}
+          </div>
         )}
       </div>
     </div>
