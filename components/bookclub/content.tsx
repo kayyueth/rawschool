@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useWeb3 } from "@/lib/web3Context";
 
 interface BookclubData {
   id: number;
@@ -46,6 +47,7 @@ export default function Content({ selectedData }: ContentProps) {
     review: "",
   });
   const [currentReviewer, setCurrentReviewer] = useState<string>("");
+  const { isConnected } = useWeb3();
 
   useEffect(() => {
     // If selectedData is provided, use it directly
@@ -229,64 +231,69 @@ export default function Content({ selectedData }: ContentProps) {
       ) : (
         <div className="h-[800px] flex flex-col">
           <div className="absolute right-20">
-            <Dialog
-              open={isDialogOpen}
-              onOpenChange={(open) => {
-                setIsDialogOpen(open);
-                if (!open) {
-                  setNewReview({ reviewer: "", review: "" });
-                  setIsEditMode(false);
-                  setEditingReviewId(null);
-                }
-              }}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 bg-[#FCFADE]"
-                >
-                  <Plus className="h-4 w-4" /> Add Review
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {isEditMode ? "Edit Review" : "Add a Review"}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Reviewer</label>
-                    <Input
-                      value={newReview.reviewer}
-                      onChange={(e) =>
-                        setNewReview({ ...newReview, reviewer: e.target.value })
-                      }
-                      placeholder="Your name"
-                      disabled={isEditMode}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Review</label>
-                    <Textarea
-                      value={newReview.review}
-                      onChange={(e) =>
-                        setNewReview({ ...newReview, review: e.target.value })
-                      }
-                      placeholder="Write your review here..."
-                      className="min-h-[100px]"
-                    />
-                  </div>
+            {isConnected && (
+              <Dialog
+                open={isDialogOpen}
+                onOpenChange={(open) => {
+                  setIsDialogOpen(open);
+                  if (!open) {
+                    setNewReview({ reviewer: "", review: "" });
+                    setIsEditMode(false);
+                    setEditingReviewId(null);
+                  }
+                }}
+              >
+                <DialogTrigger asChild>
                   <Button
-                    onClick={handleSubmitReview}
-                    className="w-full"
-                    disabled={!newReview.reviewer || !newReview.review}
+                    variant="outline"
+                    className="flex items-center gap-2 bg-[#FCFADE]"
                   >
-                    {isEditMode ? "Update Review" : "Submit Review"}
+                    <Plus className="h-4 w-4" /> Add Review
                   </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {isEditMode ? "Edit Review" : "Add a Review"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Reviewer</label>
+                      <Input
+                        value={newReview.reviewer}
+                        onChange={(e) =>
+                          setNewReview({
+                            ...newReview,
+                            reviewer: e.target.value,
+                          })
+                        }
+                        placeholder="Your name"
+                        disabled={isEditMode}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Review</label>
+                      <Textarea
+                        value={newReview.review}
+                        onChange={(e) =>
+                          setNewReview({ ...newReview, review: e.target.value })
+                        }
+                        placeholder="Write your review here..."
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleSubmitReview}
+                      className="w-full"
+                      disabled={!newReview.reviewer || !newReview.review}
+                    >
+                      {isEditMode ? "Update Review" : "Submit Review"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
           <button
             onClick={() => setShowReviews(false)}
