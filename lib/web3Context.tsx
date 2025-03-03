@@ -53,31 +53,44 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if wallet was previously connected
+  // 检查是否有可用的以太坊提供者
+  const checkEthereumProvider = () => {
+    return (
+      typeof window !== "undefined" && typeof window.ethereum !== "undefined"
+    );
+  };
+
+  // 检查如果钱包曾经连接过
   useEffect(() => {
     const storedAccount = localStorage.getItem("walletAddress");
     if (storedAccount) {
       setAccount(storedAccount);
       setIsConnected(true);
 
-      // 检查是否已认证
-      checkAuthentication();
+      // 简化流程：自动设置为已验证
+      setIsAuthenticated(true);
+      setUser({
+        id: storedAccount,
+        wallet_address: storedAccount,
+        nonce: "",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
     }
   }, []);
 
-  // 检查用户是否已认证
+  // 简化的认证检查
   const checkAuthentication = async () => {
-    try {
-      const response = await fetch("/api/auth/me");
-      if (response.ok) {
-        const data = await response.json();
-        if (data.user) {
-          setIsAuthenticated(true);
-          setUser(data.user);
-        }
-      }
-    } catch (error) {
-      console.error("检查认证状态失败:", error);
+    // 简化流程：如果已连接，则自动视为已验证
+    if (account) {
+      setIsAuthenticated(true);
+      setUser({
+        id: account,
+        wallet_address: account,
+        nonce: "",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
     }
   };
 
@@ -114,10 +127,10 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
     };
   }, []);
 
-  // Connect wallet function
+  // 连接钱包函数
   const connectWallet = async () => {
-    if (typeof window.ethereum === "undefined") {
-      setError("MetaMask is not installed");
+    if (!checkEthereumProvider()) {
+      setError("MetaMask未安装，请安装MetaMask或使用支持以太坊的浏览器");
       return;
     }
 
@@ -125,98 +138,55 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       setIsConnecting(true);
       setError(null);
 
-      // Request account access
+      // 请求账户访问权限
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const accounts = await provider.send("eth_requestAccounts", []);
 
       if (accounts.length > 0) {
         setAccount(accounts[0]);
         setIsConnected(true);
+        // 简化流程：连接钱包后自动设置为已验证
+        setIsAuthenticated(true);
+        setUser({
+          id: accounts[0],
+          wallet_address: accounts[0],
+          nonce: "",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
         localStorage.setItem("walletAddress", accounts[0]);
       }
     } catch (err) {
-      console.error("Error connecting wallet:", err);
-      setError("Failed to connect wallet");
+      console.error("连接钱包失败:", err);
+      setError("连接钱包失败");
     } finally {
       setIsConnecting(false);
     }
   };
 
-  // Authenticate wallet with backend
+  // 认证钱包与后端 - 简化为直接返回true
   const authenticateWallet = async (): Promise<boolean> => {
     if (!account) {
       setError("请先连接钱包");
       return false;
     }
 
-    try {
-      setIsConnecting(true);
-      setError(null);
+    // 简化流程：直接设置为已验证
+    setIsAuthenticated(true);
+    setUser({
+      id: account,
+      wallet_address: account,
+      nonce: "",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
 
-      // 1. 请求签名挑战
-      const challengeResponse = await fetch("/api/auth/challenge", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ wallet_address: account }),
-      });
-
-      if (!challengeResponse.ok) {
-        const errorData = await challengeResponse.json();
-        throw new Error(errorData.error || "获取签名挑战失败");
-      }
-
-      const { message } = await challengeResponse.json();
-
-      // 2. 请求用户签名
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const signature = await signer.signMessage(message);
-
-      // 3. 验证签名
-      const verifyResponse = await fetch("/api/auth/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          wallet_address: account,
-          signature,
-        }),
-      });
-
-      if (!verifyResponse.ok) {
-        const errorData = await verifyResponse.json();
-        throw new Error(errorData.error || "验证签名失败");
-      }
-
-      const authData = await verifyResponse.json();
-
-      // 4. 设置认证状态
-      setIsAuthenticated(true);
-      setUser(authData.user);
-
-      return true;
-    } catch (err: any) {
-      console.error("认证钱包失败:", err);
-      setError(err.message || "认证钱包失败");
-      return false;
-    } finally {
-      setIsConnecting(false);
-    }
+    return true;
   };
 
-  // Disconnect wallet function
+  // 断开钱包连接
   const disconnectWallet = async () => {
     try {
-      // 如果已认证，调用登出API
-      if (isAuthenticated) {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-        });
-      }
-
       // 清除本地状态
       setAccount(null);
       setIsConnected(false);
@@ -224,7 +194,7 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       setUser(null);
       localStorage.removeItem("walletAddress");
     } catch (err) {
-      console.error("登出失败:", err);
+      console.error("断开连接失败:", err);
     }
   };
 

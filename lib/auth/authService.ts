@@ -9,16 +9,19 @@ import { setCookie, deleteCookie, getCookie } from "./cookieUtils";
 import { getOrCreateUser as getUserFromService } from "./userService";
 
 // 创建签名消息
-export function createSignMessage(address: string, nonce: string): string {
+export async function createSignMessage(
+  address: string,
+  nonce: string
+): Promise<string> {
   return `请签名此消息以验证您是钱包地址 ${address} 的所有者。\n\n随机码: ${nonce}\n\n此签名不会花费任何gas费用。`;
 }
 
 // 验证签名
-export function verifySignature(
+export async function verifySignature(
   message: string,
   signature: string,
   address: string
-): boolean {
+): Promise<boolean> {
   try {
     const recoveredAddress = ethers.utils.verifyMessage(message, signature);
     return recoveredAddress.toLowerCase() === address.toLowerCase();

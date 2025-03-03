@@ -3,6 +3,7 @@
 import { Globe, Link2, LogOut, User } from "lucide-react";
 import { useWeb3 } from "@/lib/web3Context";
 import { useState, useRef, useEffect } from "react";
+import { toast } from "react-hot-toast";
 
 export default function NavSub() {
   const {
@@ -44,18 +45,23 @@ export default function NavSub() {
 
   // 处理连接钱包
   const handleConnectWallet = async () => {
-    await connectWallet();
-  };
-
-  // 处理认证钱包
-  const handleAuthenticateWallet = async () => {
-    await authenticateWallet();
+    try {
+      await connectWallet();
+      toast.success("钱包连接成功");
+    } catch (err) {
+      toast.error("连接钱包失败");
+    }
   };
 
   // 处理断开连接
   const handleDisconnect = async () => {
-    await disconnectWallet();
-    setShowMenu(false);
+    try {
+      await disconnectWallet();
+      toast.success("已断开连接");
+      setShowMenu(false);
+    } catch (err) {
+      toast.error("断开连接失败");
+    }
   };
 
   return (
@@ -77,50 +83,30 @@ export default function NavSub() {
             <Link2 className="w-6 h-6 mr-2 mt-1" />
             {isConnecting ? "连接中..." : "Connect Wallet"}
           </button>
-        ) : !isAuthenticated ? (
+        ) : (
           <div className="flex items-center">
             <span className="text-[#FCFADE] text-sm mr-2">
               {formatAddress(account || "")}
             </span>
             <button
-              onClick={handleAuthenticateWallet}
-              className="flex text-[#FCFADE] font-semibold text-sm mr-6 bg-green-600 hover:bg-green-700 px-2 py-1 rounded transition-colors"
-              disabled={isConnecting}
-            >
-              {isConnecting ? "认证中..." : "认证钱包"}
-            </button>
-          </div>
-        ) : (
-          <>
-            <button
               onClick={toggleMenu}
-              className="flex text-[#FCFADE] font-semibold text-lg mr-6 hover:text-gray-300 transition-colors"
+              className="flex text-[#FCFADE] font-semibold text-sm mr-6 hover:text-gray-300 transition-colors"
             >
-              <Link2 className="w-6 h-6 mr-2 mt-1" />
-              {formatAddress(account || "")}
+              <User className="w-5 h-5 mr-1" />
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
-                <div className="py-1">
-                  <a
-                    href={`/profile/${account}`}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </a>
-                  <button
-                    onClick={handleDisconnect}
-                    className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Disconnect
-                  </button>
-                </div>
+              <div className="absolute right-0 top-8 bg-black border border-gray-700 rounded shadow-lg z-10">
+                <button
+                  onClick={handleDisconnect}
+                  className="flex items-center w-full px-4 py-2 text-[#FCFADE] hover:bg-gray-800 transition-colors"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  断开连接
+                </button>
               </div>
             )}
-          </>
+          </div>
         )}
 
         {error && (
