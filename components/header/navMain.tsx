@@ -16,7 +16,7 @@ export default function NavMain({ onViewChange }: NavMainProps) {
         </button>
       </div>
 
-      <div>
+      <div className="">
         <button
           onClick={() => onViewChange?.("join")}
           className="mr-8 hover:opacity-70 transition-opacity"

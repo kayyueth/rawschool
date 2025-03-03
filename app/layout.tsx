@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Roboto } from "next/font/google";
+import { Web3Provider } from "@/lib/web3Context";
 
 const roboto = Roboto({
   weight: ["400", "700"],
@@ -19,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${roboto.variable} antialiased`}>{children}</body>
+      <body className={`${roboto.variable} antialiased`}>
+        <Web3Provider>{children}</Web3Provider>
+      </body>
     </html>
   );
 }
