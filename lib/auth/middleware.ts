@@ -130,10 +130,16 @@ export function getCurrentUserInfo(): {
   userId: string | null;
   walletAddress: string | null;
 } {
-  // 这是一个客户端函数，应该从localStorage或状态管理中获取
-  // 在实际实现中，这应该与Web3Context集成
+  // 从localStorage获取钱包地址
+  const walletAddress =
+    typeof window !== "undefined"
+      ? localStorage.getItem("walletAddress")
+      : null;
+
+  // 在实际应用中，userId应该从认证会话中获取
+  // 这里简化处理，仅返回钱包地址
   return {
-    userId: null,
-    walletAddress: null,
+    userId: null, // 这里应该返回真实的用户ID，但需要与Web3Context集成
+    walletAddress,
   };
 }

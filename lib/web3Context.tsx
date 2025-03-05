@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { ethers } from "ethers";
 import { User } from "@/types/auth";
+import { supabase } from "./supabaseClient";
 
 // Define context types
 type Web3ContextType = {
@@ -60,6 +61,53 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
     );
   };
 
+  // 获取或创建用户
+  const getOrCreateUser = async (
+    walletAddress: string
+  ): Promise<User | null> => {
+    try {
+      // 规范化钱包地址
+      const normalizedAddress = walletAddress.toLowerCase();
+
+      // 先查找用户
+      const { data: existingUser, error: findError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("wallet_address", normalizedAddress)
+        .single();
+
+      if (existingUser) {
+        return existingUser as User;
+      }
+
+      // 如果用户不存在，创建新用户
+      if (findError && findError.code === "PGRST116") {
+        // 生成随机 nonce
+        const nonce = Math.floor(Math.random() * 1000000).toString();
+
+        // 创建新用户
+        const { data: newUser, error: createError } = await supabase
+          .from("users")
+          .insert([{ wallet_address: normalizedAddress, nonce }])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error("创建用户失败:", createError);
+          return null;
+        }
+
+        return newUser as User;
+      }
+
+      console.error("查找用户失败:", findError);
+      return null;
+    } catch (error) {
+      console.error("获取或创建用户失败:", error);
+      return null;
+    }
+  };
+
   // 检查如果钱包曾经连接过
   useEffect(() => {
     const storedAccount = localStorage.getItem("walletAddress");
@@ -67,32 +115,15 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       setAccount(storedAccount);
       setIsConnected(true);
 
-      // 简化流程：自动设置为已验证
-      setIsAuthenticated(true);
-      setUser({
-        id: storedAccount,
-        wallet_address: storedAccount,
-        nonce: "",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+      // 获取用户信息
+      getOrCreateUser(storedAccount).then((userData) => {
+        if (userData) {
+          setIsAuthenticated(true);
+          setUser(userData);
+        }
       });
     }
   }, []);
-
-  // 简化的认证检查
-  const checkAuthentication = async () => {
-    // 简化流程：如果已连接，则自动视为已验证
-    if (account) {
-      setIsAuthenticated(true);
-      setUser({
-        id: account,
-        wallet_address: account,
-        nonce: "",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-    }
-  };
 
   // Handle chain changes and account changes
   useEffect(() => {
@@ -109,6 +140,14 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
           setIsConnected(true);
           setIsAuthenticated(false);
           setUser(null);
+
+          // 获取新账户的用户信息
+          getOrCreateUser(accounts[0]).then((userData) => {
+            if (userData) {
+              setIsAuthenticated(true);
+              setUser(userData);
+            }
+          });
         }
       });
 
@@ -143,18 +182,17 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       const accounts = await provider.send("eth_requestAccounts", []);
 
       if (accounts.length > 0) {
-        setAccount(accounts[0]);
+        const walletAddress = accounts[0];
+        setAccount(walletAddress);
         setIsConnected(true);
-        // 简化流程：连接钱包后自动设置为已验证
-        setIsAuthenticated(true);
-        setUser({
-          id: accounts[0],
-          wallet_address: accounts[0],
-          nonce: "",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
-        localStorage.setItem("walletAddress", accounts[0]);
+        localStorage.setItem("walletAddress", walletAddress);
+
+        // 获取或创建用户
+        const userData = await getOrCreateUser(walletAddress);
+        if (userData) {
+          setIsAuthenticated(true);
+          setUser(userData);
+        }
       }
     } catch (err) {
       console.error("连接钱包失败:", err);
@@ -164,24 +202,28 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
     }
   };
 
-  // 认证钱包与后端 - 简化为直接返回true
+  // 认证钱包与后端
   const authenticateWallet = async (): Promise<boolean> => {
     if (!account) {
       setError("请先连接钱包");
       return false;
     }
 
-    // 简化流程：直接设置为已验证
-    setIsAuthenticated(true);
-    setUser({
-      id: account,
-      wallet_address: account,
-      nonce: "",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
+    try {
+      // 获取或创建用户
+      const userData = await getOrCreateUser(account);
+      if (userData) {
+        setIsAuthenticated(true);
+        setUser(userData);
+        return true;
+      }
 
-    return true;
+      return false;
+    } catch (error) {
+      console.error("认证钱包失败:", error);
+      setError("认证钱包失败");
+      return false;
+    }
   };
 
   // 断开钱包连接

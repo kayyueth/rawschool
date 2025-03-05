@@ -47,7 +47,7 @@ export default function Content({ selectedData }: ContentProps) {
     review: "",
   });
   const [currentReviewer, setCurrentReviewer] = useState<string>("");
-  const { isConnected } = useWeb3();
+  const { isConnected, account } = useWeb3();
 
   useEffect(() => {
     // If selectedData is provided, use it directly
@@ -84,6 +84,17 @@ export default function Content({ selectedData }: ContentProps) {
     fetchContent();
   }, [selectedData]);
 
+  useEffect(() => {
+    // 如果用户已连接钱包，使用钱包地址作为 reviewer
+    if (isConnected && account) {
+      setNewReview((prev) => ({
+        ...prev,
+        reviewer: account,
+      }));
+      setCurrentReviewer(account);
+    }
+  }, [isConnected, account]);
+
   const fetchReviews = async (bookId: number) => {
     try {
       const { data, error } = await supabase
@@ -104,19 +115,28 @@ export default function Content({ selectedData }: ContentProps) {
   const handleSubmitReview = async () => {
     if (!content || !newReview.reviewer || !newReview.review) return;
 
+    // 确保只有已连接钱包的用户才能提交评论
+    if (!isConnected || !account) {
+      console.error("请先连接钱包");
+      return;
+    }
+
+    // 确保使用钱包地址作为 reviewer
+    const reviewerAddress = account;
+
     try {
       if (isEditMode && editingReviewId) {
-        // Check if the current reviewer matches the original reviewer
+        // 检查当前用户是否是评论的原作者
         const reviewToEdit = reviews.find((r) => r.id === editingReviewId);
-        if (reviewToEdit?.reviewer !== currentReviewer) {
-          console.error("You can only edit your own reviews");
+        if (reviewToEdit?.reviewer !== reviewerAddress) {
+          console.error("您只能编辑自己的评论");
           return;
         }
 
         const { data, error } = await supabase
           .from("bookreview")
           .update({
-            reviewer: newReview.reviewer,
+            reviewer: reviewerAddress,
             review: newReview.review,
           })
           .eq("id", editingReviewId)
@@ -137,7 +157,7 @@ export default function Content({ selectedData }: ContentProps) {
           .insert([
             {
               book_id: content.id,
-              reviewer: newReview.reviewer,
+              reviewer: reviewerAddress,
               review: newReview.review,
               created_at: new Date().toISOString(),
             },
@@ -148,17 +168,16 @@ export default function Content({ selectedData }: ContentProps) {
 
         if (data) {
           setReviews([data[0], ...reviews]);
-          // Set current reviewer when adding a new review
-          setCurrentReviewer(newReview.reviewer);
         }
       }
 
-      setNewReview({ reviewer: "", review: "" });
+      setCurrentReviewer(reviewerAddress);
+      setNewReview({ reviewer: reviewerAddress, review: "" });
       setIsDialogOpen(false);
       setIsEditMode(false);
       setEditingReviewId(null);
     } catch (error) {
-      console.error("Error handling review:", error);
+      console.error("Error submitting review:", error);
     }
   };
 
@@ -251,26 +270,18 @@ export default function Content({ selectedData }: ContentProps) {
                     <Plus className="h-4 w-4" /> Add Review
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[500px]">
                   <DialogHeader>
                     <DialogTitle>
-                      {isEditMode ? "Edit Review" : "Add a Review"}
+                      {isEditMode ? "Edit Review" : "Add Review"}
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Reviewer</label>
-                      <Input
-                        value={newReview.reviewer}
-                        onChange={(e) =>
-                          setNewReview({
-                            ...newReview,
-                            reviewer: e.target.value,
-                          })
-                        }
-                        placeholder="Your name"
-                        disabled={isEditMode}
-                      />
+                      <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
+                        {account ? account : "请先连接钱包"}
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Review</label>
@@ -286,7 +297,7 @@ export default function Content({ selectedData }: ContentProps) {
                     <Button
                       onClick={handleSubmitReview}
                       className="w-full"
-                      disabled={!newReview.reviewer || !newReview.review}
+                      disabled={!isConnected || !account || !newReview.review}
                     >
                       {isEditMode ? "Update Review" : "Submit Review"}
                     </Button>

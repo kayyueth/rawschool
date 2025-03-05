@@ -67,6 +67,16 @@ export default function WikiEditor({
     }
   }, [wikiItem, isEdit]);
 
+  // 当用户连接钱包时，自动设置 Author 为钱包地址
+  useEffect(() => {
+    if (account) {
+      setFormData((prev) => ({
+        ...prev,
+        Author: account,
+      }));
+    }
+  }, [account]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -92,11 +102,50 @@ export default function WikiEditor({
       return;
     }
 
+    // 验证表单数据
+    if (!formData.词条名称.trim()) {
+      setError("词条名称不能为空");
+      return;
+    }
+
+    if (!formData["定义/解释/翻译校对"].trim()) {
+      setError("定义/解释/翻译校对不能为空");
+      return;
+    }
+
+    if (!formData["来源Soucre / 章节 Chapter"].trim()) {
+      setError("来源/章节不能为空");
+      return;
+    }
+
+    // 确保使用钱包地址作为作者
+    const authorAddress = account;
+
+    if (!formData.内容.trim()) {
+      setError("内容不能为空");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
       const now = new Date().toISOString();
+
+      // 确保数据格式与数据库匹配
+      const formattedData = {
+        id: formData.id, // 保留 ID（如果有）
+        词条名称: formData.词条名称,
+        "定义/解释/翻译校对": formData["定义/解释/翻译校对"],
+        "来源Soucre / 章节 Chapter": formData["来源Soucre / 章节 Chapter"],
+        Author: authorAddress, // 使用钱包地址作为作者
+        "人工智能生成 AI-generated": formData["人工智能生成 AI-generated"]
+          ? "true"
+          : "false",
+        内容: formData.内容,
+        人工智能模型: formData.人工智能模型,
+        // 不包含 Property 和 wallet_address 字段，因为 SQL 插入语句中没有这些字段
+      };
 
       if (isEdit && wikiItem?.id) {
         // 检查所有权
@@ -113,32 +162,53 @@ export default function WikiEditor({
         const { error } = await supabase
           .from("wiki")
           .update({
-            ...formData,
+            ...formattedData,
             "Last edited time": now,
-            wallet_address: account,
           })
           .eq("id", wikiItem.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase 更新错误:", error);
+          throw new Error(`更新失败: ${error.message}`);
+        }
       } else {
         // 创建新条目
         const { error } = await supabase.from("wiki").insert([
           {
-            ...formData,
+            ...formattedData,
             Date: now,
             "Last edited time": now,
-            wallet_address: account,
           },
         ]);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase 插入错误:", error);
+          throw new Error(`创建失败: ${error.message}`);
+        }
       }
 
       setIsDialogOpen(false);
       if (onSave) onSave();
     } catch (err) {
-      console.error("保存 Wiki 条目时出错:", err);
-      setError("保存失败，请稍后重试");
+      // 详细记录错误信息
+      if (err instanceof Error) {
+        console.error("保存 Wiki 条目时出错:", {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+        });
+      } else {
+        console.error("保存 Wiki 条目时出错:", err);
+      }
+
+      // 设置用户友好的错误消息
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === "object" && err !== null) {
+        setError(JSON.stringify(err));
+      } else {
+        setError("保存失败，请稍后重试");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -200,17 +270,6 @@ export default function WikiEditor({
               id="来源Soucre / 章节 Chapter"
               name="来源Soucre / 章节 Chapter"
               value={formData["来源Soucre / 章节 Chapter"]}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="Author">作者</Label>
-            <Input
-              id="Author"
-              name="Author"
-              value={formData.Author}
               onChange={handleChange}
               required
             />
