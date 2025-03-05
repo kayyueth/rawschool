@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWeb3 } from "@/lib/web3Context";
 import { getUsernamesByWalletAddresses } from "@/lib/auth/userService";
@@ -134,17 +133,23 @@ export default function Content({ selectedData }: ContentProps) {
     }
   };
 
-  // 获取评论者的显示名称（用户名或钱包地址）
   const getReviewerDisplayName = (walletAddress: string) => {
-    return reviewerUsernames[walletAddress] || truncateAddress(walletAddress);
+    // If we have a username mapping, use it directly
+    if (reviewerUsernames[walletAddress]) {
+      return reviewerUsernames[walletAddress];
+    }
+
+    // Only truncate if the string length is greater than 30 characters
+    return walletAddress.length > 30
+      ? truncateAddress(walletAddress)
+      : walletAddress;
   };
 
   const handleSubmitReview = async () => {
     if (!content || !newReview.reviewer || !newReview.review) return;
 
-    // 确保只有已连接钱包的用户才能提交评论
     if (!isConnected || !account) {
-      console.error("请先连接钱包");
+      console.error("Please connect your wallet");
       return;
     }
 
@@ -156,7 +161,7 @@ export default function Content({ selectedData }: ContentProps) {
         // 检查当前用户是否是评论的原作者
         const reviewToEdit = reviews.find((r) => r.id === editingReviewId);
         if (reviewToEdit?.reviewer !== reviewerAddress) {
-          console.error("您只能编辑自己的评论");
+          console.error("You can only edit your own reviews");
           return;
         }
 
@@ -307,7 +312,7 @@ export default function Content({ selectedData }: ContentProps) {
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Reviewer</label>
                       <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-                        {account ? account : "请先连接钱包"}
+                        {account ? account : "Please connect your wallet"}
                       </p>
                     </div>
                     <div className="space-y-2">
