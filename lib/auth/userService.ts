@@ -149,3 +149,103 @@ export async function getOrCreateUser(
     return null;
   }
 }
+
+/**
+ * 更新用户的用户名
+ */
+export async function updateUsername(
+  userId: string,
+  username: string
+): Promise<User | null> {
+  try {
+    // 更新用户
+    const { data, error } = await supabase
+      .from("users")
+      .update({ username })
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      logger.error("更新用户名失败", error);
+      return null;
+    }
+
+    return data as User;
+  } catch (error) {
+    logger.error("更新用户名失败", error);
+    return null;
+  }
+}
+
+/**
+ * 根据钱包地址获取用户名
+ */
+export async function getUsernameByWalletAddress(
+  walletAddress: string
+): Promise<string | null> {
+  try {
+    // 规范化钱包地址
+    const normalizedAddress = walletAddress.toLowerCase();
+
+    // 查询用户
+    const { data, error } = await supabase
+      .from("users")
+      .select("username")
+      .eq("wallet_address", normalizedAddress)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        // PGRST116是"没有找到结果"的错误代码
+        return null;
+      }
+
+      logger.error("查询用户名失败", error);
+      return null;
+    }
+
+    return data.username;
+  } catch (error) {
+    logger.error("查询用户名失败", error);
+    return null;
+  }
+}
+
+/**
+ * 获取多个钱包地址对应的用户名
+ */
+export async function getUsernamesByWalletAddresses(
+  walletAddresses: string[]
+): Promise<Record<string, string>> {
+  try {
+    // 规范化钱包地址
+    const normalizedAddresses = walletAddresses.map((addr) =>
+      addr.toLowerCase()
+    );
+
+    // 查询用户
+    const { data, error } = await supabase
+      .from("users")
+      .select("wallet_address, username")
+      .in("wallet_address", normalizedAddresses);
+
+    if (error) {
+      logger.error("批量查询用户名失败", error);
+      return {};
+    }
+
+    // 构建钱包地址到用户名的映射
+    const usernameMap: Record<string, string> = {};
+    data.forEach((user) => {
+      if (user.username) {
+        usernameMap[user.wallet_address] = user.username;
+      }
+    });
+
+    return usernameMap;
+  } catch (error) {
+    logger.error("批量查询用户名失败", error);
+    return {};
+  }
+}

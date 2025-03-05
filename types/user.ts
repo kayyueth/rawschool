@@ -8,8 +8,9 @@ export interface User {
   nonce: string; // 用于签名验证的随机数
   created_at: string; // 创建时间
   updated_at: string; // 更新时间
-  profile_name?: string; // 可选的用户名
+  profile_name?: string; // 可选的用户名（旧字段，保留向后兼容）
   profile_image?: string; // 可选的头像URL
+  username?: string; // 可选的用户名（新字段）
 }
 
 export interface Session {

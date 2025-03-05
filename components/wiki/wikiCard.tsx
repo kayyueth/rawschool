@@ -10,6 +10,18 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Edit, Trash2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { zhCN } from "date-fns/locale";
+import { useWeb3 } from "@/lib/web3Context";
+import { getUsernameByWalletAddress } from "@/lib/auth/userService";
+import { truncateAddress } from "@/lib/utils";
 
 interface WikiCard {
   id: string;
@@ -56,11 +68,13 @@ export default function WikiCardComponent({
   title,
   onBackToList,
 }: WikiCardProps) {
+  const { account } = useWeb3();
   const [wikiData, setWikiData] = useState<WikiCard | null>(null);
   const [relatedItems, setRelatedItems] = useState<WikiCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [authorUsername, setAuthorUsername] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -98,6 +112,11 @@ export default function WikiCardComponent({
           };
 
           setWikiData(formattedItem);
+
+          // 获取作者的用户名
+          if (data["Author"]) {
+            fetchAuthorUsername(data["Author"]);
+          }
 
           const sourceInfo = data["来源Soucre / 章节 Chapter"] || "";
           let bookName = sourceInfo;
@@ -234,6 +253,31 @@ export default function WikiCardComponent({
     fetchWikiItem();
   }, [title]);
 
+  // 获取作者的用户名
+  const fetchAuthorUsername = async (walletAddress: string) => {
+    try {
+      const username = await getUsernameByWalletAddress(walletAddress);
+      setAuthorUsername(username);
+    } catch (error) {
+      console.error("获取作者用户名失败:", error);
+    }
+  };
+
+  // 获取作者的显示名称（用户名或钱包地址）
+  const getAuthorDisplayName = () => {
+    if (authorUsername) {
+      return authorUsername;
+    }
+    return truncateAddress(wikiData?.author || "");
+  };
+
+  const formattedDate = wikiData?.createdDate
+    ? formatDistanceToNow(new Date(wikiData.createdDate), {
+        addSuffix: true,
+        locale: zhCN,
+      })
+    : "";
+
   const content = (
     <div className="min-h-screen bg-[#FCFADE] px-24 py-12">
       {isLoading ? (
@@ -279,7 +323,7 @@ export default function WikiCardComponent({
 
               <div className="col-span-2 md:col-span-1">
                 <p className="text-black/60 mb-1">Author</p>
-                <p className="text-xl">{wikiData.author}</p>
+                <p className="text-xl">{getAuthorDisplayName()}</p>
               </div>
 
               <div className="col-span-2 md:col-span-1">
@@ -303,7 +347,7 @@ export default function WikiCardComponent({
             </div>
 
             <div className="text-black/50 text-sm">
-              <p>Creation date: {wikiData.createdDate}</p>
+              <p>Creation date: {formattedDate}</p>
               <p>Last edited: {wikiData.lastEditedTime}</p>
             </div>
           </div>

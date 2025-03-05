@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil } from "lucide-react";
 import PermissionControl from "@/components/auth/PermissionControl";
+import { getUsernameByWalletAddress } from "@/lib/auth/userService";
+import { truncateAddress } from "@/lib/utils";
 
 interface WikiItem {
   id?: string;
@@ -58,12 +60,18 @@ export default function WikiEditor({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [authorUsername, setAuthorUsername] = useState<string | null>(null);
 
   const { isAuthenticated, account } = useWeb3();
 
   useEffect(() => {
     if (wikiItem && isEdit) {
       setFormData(wikiItem);
+
+      // 获取作者的用户名
+      if (wikiItem.Author) {
+        fetchAuthorUsername(wikiItem.Author);
+      }
     }
   }, [wikiItem, isEdit]);
 
@@ -76,6 +84,24 @@ export default function WikiEditor({
       }));
     }
   }, [account]);
+
+  // 获取作者的用户名
+  const fetchAuthorUsername = async (walletAddress: string) => {
+    try {
+      const username = await getUsernameByWalletAddress(walletAddress);
+      setAuthorUsername(username);
+    } catch (error) {
+      console.error("获取作者用户名失败:", error);
+    }
+  };
+
+  // 获取作者的显示名称（用户名或钱包地址）
+  const getAuthorDisplayName = () => {
+    if (authorUsername) {
+      return authorUsername;
+    }
+    return formData.Author ? truncateAddress(formData.Author) : "";
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -307,6 +333,13 @@ export default function WikiEditor({
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="Author">作者</Label>
+            <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
+              {account ? account : "请先连接钱包"}
+            </p>
+          </div>
 
           {error && <div className="text-red-500 text-sm">{error}</div>}
 

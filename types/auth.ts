@@ -5,6 +5,7 @@ export interface User {
   nonce: string;
   created_at: string;
   updated_at: string;
+  username?: string;
 }
 
 // 会话类型定义

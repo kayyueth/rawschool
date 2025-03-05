@@ -13,6 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWeb3 } from "@/lib/web3Context";
+import { getUsernamesByWalletAddresses } from "@/lib/auth/userService";
+import { truncateAddress } from "@/lib/utils";
 
 interface BookclubData {
   id: number;
@@ -47,6 +49,9 @@ export default function Content({ selectedData }: ContentProps) {
     review: "",
   });
   const [currentReviewer, setCurrentReviewer] = useState<string>("");
+  const [reviewerUsernames, setReviewerUsernames] = useState<
+    Record<string, string>
+  >({});
   const { isConnected, account } = useWeb3();
 
   useEffect(() => {
@@ -106,10 +111,32 @@ export default function Content({ selectedData }: ContentProps) {
       if (error) throw error;
       if (data) {
         setReviews(data);
+
+        // 获取所有评论者的钱包地址
+        const reviewerAddresses = [
+          ...new Set(data.map((review) => review.reviewer)),
+        ];
+
+        // 获取这些钱包地址对应的用户名
+        if (reviewerAddresses.length > 0) {
+          try {
+            const usernameMap = await getUsernamesByWalletAddresses(
+              reviewerAddresses
+            );
+            setReviewerUsernames(usernameMap);
+          } catch (error) {
+            console.error("获取用户名失败:", error);
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching reviews:", error);
     }
+  };
+
+  // 获取评论者的显示名称（用户名或钱包地址）
+  const getReviewerDisplayName = (walletAddress: string) => {
+    return reviewerUsernames[walletAddress] || truncateAddress(walletAddress);
   };
 
   const handleSubmitReview = async () => {
@@ -323,7 +350,9 @@ export default function Content({ selectedData }: ContentProps) {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-xl font-bold">{review.reviewer}</p>
+                    <p className="text-xl font-bold">
+                      {getReviewerDisplayName(review.reviewer)}
+                    </p>
                     <p className="text-sm text-gray-600 mb-4">
                       {formatDate(review.created_at)}
                     </p>

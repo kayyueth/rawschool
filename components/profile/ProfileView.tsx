@@ -10,12 +10,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BookOpen, Sparkles } from "lucide-react";
+import { BookOpen, Sparkles, Edit2 } from "lucide-react";
 import {
   fetchWalletBookclubReviews,
   fetchWalletAmbientCards,
 } from "@/lib/services/userContent";
 import { BookclubReview, AmbientCard } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/lib/supabaseClient";
+import { toast } from "react-hot-toast";
+import {
+  updateUsername,
+  getUsernameByWalletAddress,
+} from "@/lib/auth/userService";
 
 // 组件内部使用的类型定义
 interface DisplayReview {
@@ -33,25 +41,59 @@ interface DisplayCard {
 }
 
 export default function ProfileView() {
-  const { account, isConnected } = useWeb3();
+  const { account, isConnected, user } = useWeb3();
   const [activeTab, setActiveTab] = useState("reviews");
   const [isLoading, setIsLoading] = useState(false);
   const [bookclubReviews, setBookclubReviews] = useState<DisplayReview[]>([]);
   const [ambientCards, setAmbientCards] = useState<DisplayCard[]>([]);
+  const [username, setUsername] = useState("");
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
 
   useEffect(() => {
     // 如果用户已连接钱包，则获取数据
     if (isConnected && account) {
       fetchUserData(account);
+      fetchUserProfile(account);
     }
   }, [isConnected, account]);
+
+  const fetchUserProfile = async (address: string) => {
+    try {
+      const username = await getUsernameByWalletAddress(address);
+
+      if (username) {
+        setUsername(username);
+        setNewUsername(username);
+      }
+    } catch (error) {
+      console.error("获取用户资料失败:", error);
+    }
+  };
+
+  const saveUsername = async () => {
+    if (!user || !newUsername.trim()) return;
+
+    try {
+      const updatedUser = await updateUsername(user.id, newUsername);
+
+      if (updatedUser) {
+        setUsername(newUsername);
+        setIsEditingUsername(false);
+        toast.success("用户名已更新");
+      } else {
+        toast.error("保存用户名失败");
+      }
+    } catch (error) {
+      console.error("保存用户名失败:", error);
+      toast.error("保存用户名失败");
+    }
+  };
 
   const fetchUserData = async (address: string) => {
     setIsLoading(true);
     try {
-      // 获取用户的真实 BookclubReview 数据
       const reviews = await fetchWalletBookclubReviews(address);
-      // 转换为组件内部使用的格式
       const displayReviews: DisplayReview[] = reviews.map((review) => ({
         id: review.id,
         title: review.title,
@@ -60,9 +102,7 @@ export default function ProfileView() {
       }));
       setBookclubReviews(displayReviews);
 
-      // 获取用户的真实 AmbientCard 数据
       const cards = await fetchWalletAmbientCards(address);
-      // 转换为组件内部使用的格式
       const displayCards: DisplayCard[] = cards.map((card) => ({
         id: card.id,
         title: card.title,
@@ -88,9 +128,52 @@ export default function ProfileView() {
   return (
     <div className="container mx-auto py-12 px-12">
       <h1 className="text-2xl font-bold mb-6">用户资料</h1>
+
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">钱包地址</h2>
         <p className="text-gray-600 bg-gray-100 p-2 rounded">{account}</p>
+      </div>
+
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold mb-2">用户名</h2>
+          {!isEditingUsername && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditingUsername(true)}
+              className="flex items-center"
+            >
+              <Edit2 className="w-4 h-4 mr-2" />
+              编辑
+            </Button>
+          )}
+        </div>
+
+        {isEditingUsername ? (
+          <div className="flex items-center gap-2">
+            <Input
+              value={newUsername}
+              onChange={(e) => setNewUsername(e.target.value)}
+              placeholder="输入您的用户名"
+              className="max-w-md"
+            />
+            <Button onClick={saveUsername}>保存</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditingUsername(false);
+                setNewUsername(username);
+              }}
+            >
+              取消
+            </Button>
+          </div>
+        ) : (
+          <p className="text-gray-600 bg-gray-100 p-2 rounded">
+            {username || "未设置用户名"}
+          </p>
+        )}
       </div>
 
       <Tabs defaultValue="bookclub" className="w-full">
