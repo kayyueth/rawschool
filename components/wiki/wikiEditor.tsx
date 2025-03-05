@@ -18,7 +18,7 @@ import {
 import { Plus, Pencil } from "lucide-react";
 import PermissionControl from "@/components/auth/PermissionControl";
 import { getUsernameByWalletAddress } from "@/lib/auth/userService";
-import { truncateAddress } from "@/lib/utils";
+import { v4 as uuidv4 } from "uuid";
 
 interface WikiItem {
   id?: string;
@@ -68,14 +68,12 @@ export default function WikiEditor({
     if (wikiItem && isEdit) {
       setFormData(wikiItem);
 
-      // 获取作者的用户名
       if (wikiItem.Author) {
         fetchAuthorUsername(wikiItem.Author);
       }
     }
   }, [wikiItem, isEdit]);
 
-  // 当用户连接钱包时，自动设置 Author 为钱包地址
   useEffect(() => {
     if (account) {
       setFormData((prev) => ({
@@ -85,22 +83,13 @@ export default function WikiEditor({
     }
   }, [account]);
 
-  // 获取作者的用户名
   const fetchAuthorUsername = async (walletAddress: string) => {
     try {
       const username = await getUsernameByWalletAddress(walletAddress);
       setAuthorUsername(username);
     } catch (error) {
-      console.error("获取作者用户名失败:", error);
+      console.error("Failed to fetch author username:", error);
     }
-  };
-
-  // 获取作者的显示名称（用户名或钱包地址）
-  const getAuthorDisplayName = () => {
-    if (authorUsername) {
-      return authorUsername;
-    }
-    return formData.Author ? truncateAddress(formData.Author) : "";
   };
 
   const handleChange = (
@@ -160,7 +149,7 @@ export default function WikiEditor({
 
       // 确保数据格式与数据库匹配
       const formattedData = {
-        id: formData.id, // 保留 ID（如果有）
+        id: formData.id || uuidv4(), // 如果没有ID，生成一个新的UUID
         词条名称: formData.词条名称,
         "定义/解释/翻译校对": formData["定义/解释/翻译校对"],
         "来源Soucre / 章节 Chapter": formData["来源Soucre / 章节 Chapter"],
@@ -198,7 +187,6 @@ export default function WikiEditor({
           throw new Error(`更新失败: ${error.message}`);
         }
       } else {
-        // 创建新条目
         const { error } = await supabase.from("wiki").insert([
           {
             ...formattedData,
@@ -218,13 +206,13 @@ export default function WikiEditor({
     } catch (err) {
       // 详细记录错误信息
       if (err instanceof Error) {
-        console.error("保存 Wiki 条目时出错:", {
+        console.error("Save wiki entry error:", {
           message: err.message,
           stack: err.stack,
           name: err.name,
         });
       } else {
-        console.error("保存 Wiki 条目时出错:", err);
+        console.error("Save wiki entry error:", err);
       }
 
       // 设置用户友好的错误消息
@@ -233,7 +221,7 @@ export default function WikiEditor({
       } else if (typeof err === "object" && err !== null) {
         setError(JSON.stringify(err));
       } else {
-        setError("保存失败，请稍后重试");
+        setError("Save failed, please try again later");
       }
     } finally {
       setIsLoading(false);
@@ -269,7 +257,7 @@ export default function WikiEditor({
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="词条名称">词条名称</Label>
+            <Label htmlFor="词条名称">Wiki Entry Name</Label>
             <Input
               id="词条名称"
               name="词条名称"
@@ -280,7 +268,9 @@ export default function WikiEditor({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="定义/解释/翻译校对">定义/解释/翻译校对</Label>
+            <Label htmlFor="定义/解释/翻译校对">
+              Definition/explanation/translation
+            </Label>
             <Textarea
               id="定义/解释/翻译校对"
               name="定义/解释/翻译校对"
@@ -291,7 +281,7 @@ export default function WikiEditor({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="来源Soucre / 章节 Chapter">来源/章节</Label>
+            <Label htmlFor="来源Soucre / 章节 Chapter">Source/chapter</Label>
             <Input
               id="来源Soucre / 章节 Chapter"
               name="来源Soucre / 章节 Chapter"
@@ -302,7 +292,7 @@ export default function WikiEditor({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="内容">内容</Label>
+            <Label htmlFor="内容">Content</Label>
             <Textarea
               id="内容"
               name="内容"
@@ -319,12 +309,12 @@ export default function WikiEditor({
               checked={formData["人工智能生成 AI-generated"]}
               onCheckedChange={handleCheckboxChange}
             />
-            <Label htmlFor="人工智能生成 AI-generated">人工智能生成</Label>
+            <Label htmlFor="人工智能生成 AI-generated">AI-generated</Label>
           </div>
 
           {formData["人工智能生成 AI-generated"] && (
             <div className="space-y-2">
-              <Label htmlFor="人工智能模型">人工智能模型</Label>
+              <Label htmlFor="人工智能模型">AI model</Label>
               <Input
                 id="人工智能模型"
                 name="人工智能模型"
@@ -335,9 +325,9 @@ export default function WikiEditor({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="Author">作者</Label>
+            <Label htmlFor="Author">Author</Label>
             <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-              {account ? account : "请先连接钱包"}
+              {account ? account : "Please connect your wallet"}
             </p>
           </div>
 
@@ -353,10 +343,10 @@ export default function WikiEditor({
               }}
               disabled={isLoading}
             >
-              取消
+              Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "保存中..." : "保存"}
+              {isLoading ? "Saving..." : "Save"}
             </Button>
           </div>
         </form>
@@ -377,4 +367,80 @@ export function EditWikiButton({
   onSave?: () => void;
 }) {
   return <WikiEditor wikiItem={wikiItem} isEdit={true} onSave={onSave} />;
+}
+
+export function WikiEditorContent({
+  wikiItem,
+  onSave,
+}: {
+  wikiItem: WikiItem;
+  onSave?: () => void;
+}) {
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (onSave) onSave();
+      }}
+      className="space-y-4 mt-4"
+    >
+      <div className="space-y-2">
+        <Label htmlFor="词条名称">Wiki Entry Name</Label>
+        <Input
+          id="词条名称"
+          name="词条名称"
+          defaultValue={wikiItem.词条名称}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="定义/解释/翻译校对">
+          Definition/explanation/translation
+        </Label>
+        <Textarea
+          id="定义/解释/翻译校对"
+          name="定义/解释/翻译校对"
+          defaultValue={wikiItem["定义/解释/翻译校对"]}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="来源Soucre / 章节 Chapter">Source/chapter</Label>
+        <Input
+          id="来源Soucre / 章节 Chapter"
+          name="来源Soucre / 章节 Chapter"
+          defaultValue={wikiItem["来源Soucre / 章节 Chapter"]}
+          required
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="人工智能生成 AI-generated"
+          name="人工智能生成 AI-generated"
+          defaultChecked={wikiItem["人工智能生成 AI-generated"]}
+        />
+        <Label htmlFor="人工智能生成 AI-generated">AI Generated</Label>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="内容">Content</Label>
+        <Textarea
+          id="内容"
+          name="内容"
+          defaultValue={wikiItem.内容}
+          className="min-h-[200px]"
+          required
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="submit" className="bg-black text-white hover:bg-black/70">
+          Save Changes
+        </Button>
+      </div>
+    </form>
+  );
 }

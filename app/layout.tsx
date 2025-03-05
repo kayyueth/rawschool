@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Roboto } from "next/font/google";
 import { Web3Provider } from "@/lib/web3Context";
+import { Toaster } from "sonner";
+import { ThemeProvider } from "next-themes";
 
 const roboto = Roboto({
   weight: ["400", "700"],
@@ -19,9 +21,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${roboto.variable} antialiased`}>
-        <Web3Provider>{children}</Web3Provider>
+        <Web3Provider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster position="top-center" />
+          </ThemeProvider>
+        </Web3Provider>
       </body>
     </html>
   );

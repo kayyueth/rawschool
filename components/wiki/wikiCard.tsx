@@ -16,12 +16,36 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { useWeb3 } from "@/lib/web3Context";
 import { getUsernameByWalletAddress } from "@/lib/auth/userService";
 import { truncateAddress } from "@/lib/utils";
+import { deleteAmbientCard } from "@/lib/services/userContent";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { EditWikiButton, WikiEditorContent } from "./wikiEditor";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import WikiEditor from "./wikiEditor";
 
 interface WikiCard {
   id: string;
@@ -74,6 +98,9 @@ export default function WikiCardComponent({
   const [isLoading, setIsLoading] = useState(true);
   const [authorUsername, setAuthorUsername] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -278,6 +305,62 @@ export default function WikiCardComponent({
       })
     : "";
 
+  // 检查当前用户是否是作者
+  const isAuthor =
+    account &&
+    wikiData?.author &&
+    account.toLowerCase() === wikiData.author.toLowerCase();
+
+  // 处理删除条目
+  const handleDeleteEntry = async () => {
+    if (!wikiData || !account) return;
+
+    try {
+      setIsDeleting(true);
+      await deleteAmbientCard(wikiData.id, account);
+      toast.success("条目已成功删除");
+      onBackToList(); // 返回列表页
+    } catch (error) {
+      console.error("删除条目时出错:", error);
+      toast.error(
+        error instanceof Error ? error.message : "删除条目失败，请稍后重试"
+      );
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
+  // 处理编辑完成后的刷新
+  const handleEditComplete = () => {
+    setShowEditDialog(false);
+    // 重新加载条目数据
+    if (wikiData) {
+      setIsLoading(true);
+      fetchWikiItem(wikiData.title);
+    }
+    toast.success("条目已成功更新");
+  };
+
+  // 将WikiCard格式转换为WikiItem格式，用于编辑器
+  const convertToWikiItem = () => {
+    if (!wikiData) return null;
+
+    return {
+      id: wikiData.id,
+      词条名称: wikiData.title,
+      "定义/解释/翻译校对": wikiData.definition,
+      "来源Soucre / 章节 Chapter": wikiData.source,
+      "人工智能生成 AI-generated": wikiData.aiGenerated,
+      Date: wikiData.createdDate,
+      "Last edited time": wikiData.lastEditedTime,
+      人工智能模型: wikiData.aiModel,
+      内容: wikiData.content,
+      Author: wikiData.author,
+      wallet_address: wikiData.author,
+    };
+  };
+
   const content = (
     <div className="min-h-screen bg-[#FCFADE] px-24 py-12">
       {isLoading ? (
@@ -296,13 +379,80 @@ export default function WikiCardComponent({
         </div>
       ) : (
         <>
-          {/* 返回按钮 */}
-          <Button
-            className="mb-8 bg-black text-white hover:bg-black/70"
-            onClick={onBackToList}
-          >
-            ← Back to the list
-          </Button>
+          {/* 返回按钮和操作按钮 */}
+          <div className="flex justify-between items-center mb-8">
+            <Button
+              className="bg-black text-white hover:bg-black/70"
+              onClick={onBackToList}
+            >
+              ← Back to the list
+            </Button>
+
+            {isAuthor && (
+              <div className="flex gap-2">
+                {/* 编辑按钮 */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 bg-blue-50"
+                  onClick={() => setShowEditDialog(true)}
+                >
+                  <Edit className="h-5 w-5" />
+                </Button>
+
+                {/* 删除按钮和确认对话框 */}
+                <AlertDialog
+                  open={showDeleteDialog}
+                  onOpenChange={setShowDeleteDialog}
+                >
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="h-10 w-10"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>确认删除</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        您确定要删除这个条目吗？此操作无法撤销。
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={isDeleting}>
+                        取消
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteEntry}
+                        disabled={isDeleting}
+                        className="bg-red-500 hover:bg-red-600"
+                      >
+                        {isDeleting ? "删除中..." : "删除"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
+          </div>
+
+          {/* 编辑对话框 */}
+          {showEditDialog && wikiData && (
+            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>编辑词条</DialogTitle>
+                </DialogHeader>
+                <WikiEditorContent
+                  wikiItem={convertToWikiItem()!}
+                  onSave={handleEditComplete}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
 
           {/* 词条详情 */}
           <div className="bg-[#FCFADE] rounded-lg shadow-xl p-12 mb-16 border border-black">
@@ -553,5 +703,5 @@ export default function WikiCardComponent({
       setIsLoading(false);
     }
   }
-  return isClient ? content : content;
+  return isClient ? content : null;
 }

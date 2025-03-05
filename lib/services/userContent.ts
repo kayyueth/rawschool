@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { BookclubReview, AmbientCard } from "@/types";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * 获取用户的所有 BookclubReview
@@ -273,6 +274,7 @@ export async function createAmbientCard(
     .from("wiki")
     .insert([
       {
+        id: uuidv4(), // 生成唯一ID
         词条名称: title,
         内容: content,
         "定义/解释/翻译校对": "用户创建",
@@ -301,15 +303,41 @@ export async function createAmbientCard(
 
 /**
  * 更新 AmbientCard
+ * @param cardId 要更新的卡片ID
+ * @param title 新标题
+ * @param content 新内容
+ * @param walletAddress 当前用户的钱包地址，用于权限验证
+ * @returns 更新后的卡片数据
  */
 export async function updateAmbientCard(
   cardId: string,
   title: string,
-  content: string
+  content: string,
+  walletAddress: string
 ) {
+  // 首先检查该条目是否属于当前用户
+  const { data, error: fetchError } = await supabase
+    .from("wiki")
+    .select("Author")
+    .eq("id", cardId)
+    .single();
+
+  if (fetchError) {
+    if (fetchError.code === "PGRST116") {
+      // 记录不存在
+      throw new Error("条目不存在");
+    }
+    throw fetchError;
+  }
+
+  // 验证所有权
+  if (data.Author.toLowerCase() !== walletAddress.toLowerCase()) {
+    throw new Error("您没有权限更新此条目");
+  }
+
   const now = new Date().toISOString();
 
-  const { data, error } = await supabase
+  const { data: updateData, error } = await supabase
     .from("wiki")
     .update({
       词条名称: title,
@@ -341,8 +369,32 @@ export async function updateAmbientCard(
 
 /**
  * 删除 AmbientCard
+ * @param cardId 要删除的卡片ID
+ * @param walletAddress 当前用户的钱包地址，用于权限验证
+ * @returns 是否删除成功
  */
-export async function deleteAmbientCard(cardId: string) {
+export async function deleteAmbientCard(cardId: string, walletAddress: string) {
+  // 首先检查该条目是否属于当前用户
+  const { data, error: fetchError } = await supabase
+    .from("wiki")
+    .select("Author")
+    .eq("id", cardId)
+    .single();
+
+  if (fetchError) {
+    if (fetchError.code === "PGRST116") {
+      // 记录不存在
+      throw new Error("条目不存在");
+    }
+    throw fetchError;
+  }
+
+  // 验证所有权
+  if (data.Author.toLowerCase() !== walletAddress.toLowerCase()) {
+    throw new Error("您没有权限删除此条目");
+  }
+
+  // 执行删除操作
   const { error } = await supabase.from("wiki").delete().eq("id", cardId);
 
   if (error) throw error;

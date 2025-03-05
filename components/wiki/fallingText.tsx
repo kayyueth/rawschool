@@ -29,6 +29,12 @@ const FallingText: React.FC<FallingTextProps> = ({
   const textRef = useRef<HTMLDivElement | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
   const [effectStarted, setEffectStarted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // 客户端检查
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (!textRef.current) return;
@@ -36,7 +42,8 @@ const FallingText: React.FC<FallingTextProps> = ({
     const words = text.split(" ");
     const newHTML = words
       .map((word) => {
-        const isHighlighted = highlightWords.some((hw) => word === hw);
+        if (!word.trim()) return "";
+        const isHighlighted = highlightWords.some((hw) => word.includes(hw));
         // 将每个词组包装在一个span中，内部的字符也各自包装在span中
         const characters = Array.from(word).map(
           (char) => `<span class="character">${char}</span>`
@@ -45,11 +52,14 @@ const FallingText: React.FC<FallingTextProps> = ({
           isHighlighted ? highlightClass : ""
         }">${characters.join("")}</span>`;
       })
-      .join("");
+      .filter(Boolean)
+      .join(" "); // 添加空格分隔词组
     textRef.current.innerHTML = newHTML;
   }, [text, highlightWords, highlightClass]);
 
   useEffect(() => {
+    if (!isClient) return;
+
     if (trigger === "auto") {
       setEffectStarted(true);
       return;
@@ -67,10 +77,10 @@ const FallingText: React.FC<FallingTextProps> = ({
       observer.observe(containerRef.current);
       return () => observer.disconnect();
     }
-  }, [trigger]);
+  }, [trigger, isClient]);
 
   useEffect(() => {
-    if (!effectStarted) return;
+    if (!isClient || !effectStarted) return;
 
     const { Engine, Render, World, Bodies, Runner, Mouse, MouseConstraint } =
       Matter;
@@ -87,6 +97,7 @@ const FallingText: React.FC<FallingTextProps> = ({
     const height = containerRect.height;
 
     if (width <= 0 || height <= 0) {
+      console.error("Container has zero dimensions:", { width, height });
       return;
     }
 
@@ -140,6 +151,12 @@ const FallingText: React.FC<FallingTextProps> = ({
     // 获取所有词组元素
     const wordGroups =
       textRef.current.querySelectorAll<HTMLSpanElement>(".word-group");
+
+    if (wordGroups.length === 0) {
+      console.error("No word groups found in:", textRef.current.innerHTML);
+      return;
+    }
+
     const wordBodies = Array.from(wordGroups).map((elem) => {
       const rect = elem.getBoundingClientRect();
 
@@ -171,9 +188,10 @@ const FallingText: React.FC<FallingTextProps> = ({
         body.position.y - body.bounds.max.y + body.bounds.min.y
       }px`;
       elem.style.transform = "none";
+      elem.style.zIndex = "20";
     });
 
-    const mouse = Mouse.create(containerRef.current);
+    const mouse = Mouse.create(render.canvas);
     const mouseConstraint = MouseConstraint.create(engine, {
       mouse,
       constraint: {
@@ -225,6 +243,7 @@ const FallingText: React.FC<FallingTextProps> = ({
     wireframes,
     backgroundColor,
     mouseConstraintStiffness,
+    isClient,
   ]);
 
   const handleTrigger = () => {
@@ -232,6 +251,15 @@ const FallingText: React.FC<FallingTextProps> = ({
       setEffectStarted(true);
     }
   };
+
+  // 初始渲染时只显示静态文本
+  if (!isClient) {
+    return (
+      <div className="falling-text-container" style={{ fontSize }}>
+        {text}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -250,9 +278,18 @@ const FallingText: React.FC<FallingTextProps> = ({
         style={{
           fontSize: fontSize,
           lineHeight: 1.4,
+          display: effectStarted ? "none" : "block",
+        }}
+      >
+        {text}
+      </div>
+      <div
+        ref={canvasContainerRef}
+        className="falling-text-canvas"
+        style={{
+          display: effectStarted ? "block" : "none",
         }}
       />
-      <div ref={canvasContainerRef} className="falling-text-canvas" />
     </div>
   );
 };

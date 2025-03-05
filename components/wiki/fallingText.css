@@ -3,6 +3,7 @@
   height: 300px;
   margin-bottom: 2rem;
   position: relative;
+  overflow: hidden;
 }
 
 .falling-text-target {
@@ -14,11 +15,16 @@
 
 .falling-text-canvas {
   position: absolute;
-  top: 100px;
+  top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 1;
+}
+
+.falling-text-canvas canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .word-group {
@@ -36,6 +42,7 @@
   border-radius: 8px;
   backdrop-filter: blur(4px);
   transition: background-color 0.3s ease;
+  user-select: none;
 }
 
 .word-group:hover {
