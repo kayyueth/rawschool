@@ -15,17 +15,14 @@ import {
   fetchWalletBookclubReviews,
   fetchWalletAmbientCards,
 } from "@/lib/services/userContent";
-import { BookclubReview, AmbientCard } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabaseClient";
 import { toast } from "react-hot-toast";
 import {
   updateUsername,
   getUsernameByWalletAddress,
 } from "@/lib/auth/userService";
 
-// 组件内部使用的类型定义
 interface DisplayReview {
   id: string;
   title: string;
@@ -42,7 +39,6 @@ interface DisplayCard {
 
 export default function ProfileView() {
   const { account, isConnected, user } = useWeb3();
-  const [activeTab, setActiveTab] = useState("reviews");
   const [isLoading, setIsLoading] = useState(false);
   const [bookclubReviews, setBookclubReviews] = useState<DisplayReview[]>([]);
   const [ambientCards, setAmbientCards] = useState<DisplayCard[]>([]);
@@ -67,7 +63,7 @@ export default function ProfileView() {
         setNewUsername(username);
       }
     } catch (error) {
-      console.error("获取用户资料失败:", error);
+      console.error("Failed to fetch user profile:", error);
     }
   };
 
@@ -80,13 +76,13 @@ export default function ProfileView() {
       if (updatedUser) {
         setUsername(newUsername);
         setIsEditingUsername(false);
-        toast.success("用户名已更新");
+        toast.success("Username updated successfully");
       } else {
-        toast.error("保存用户名失败");
+        toast.error("Failed to save username");
       }
     } catch (error) {
-      console.error("保存用户名失败:", error);
-      toast.error("保存用户名失败");
+      console.error("Failed to save username:", error);
+      toast.error("Failed to save username");
     }
   };
 
@@ -111,7 +107,7 @@ export default function ProfileView() {
       }));
       setAmbientCards(displayCards);
     } catch (error) {
-      console.error("获取用户数据失败:", error);
+      console.error("Failed to fetch user data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -120,23 +116,25 @@ export default function ProfileView() {
   if (!isConnected) {
     return (
       <div className="flex justify-center items-center h-[60vh]">
-        <p className="text-lg text-gray-500">请连接钱包查看您的个人资料</p>
+        <p className="text-lg text-gray-500">
+          Please connect your wallet to view your profile
+        </p>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto py-12 px-12">
-      <h1 className="text-2xl font-bold mb-6">用户资料</h1>
+      <h1 className="text-2xl font-bold mb-6">User Profile</h1>
 
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">钱包地址</h2>
+        <h2 className="text-xl font-semibold mb-2">Wallet Address</h2>
         <p className="text-gray-600 bg-gray-100 p-2 rounded">{account}</p>
       </div>
 
       <div className="mb-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold mb-2">用户名</h2>
+          <h2 className="text-xl font-semibold mb-2">Username</h2>
           {!isEditingUsername && (
             <Button
               variant="outline"
@@ -145,7 +143,7 @@ export default function ProfileView() {
               className="flex items-center"
             >
               <Edit2 className="w-4 h-4 mr-2" />
-              编辑
+              Edit
             </Button>
           )}
         </div>
@@ -155,10 +153,10 @@ export default function ProfileView() {
             <Input
               value={newUsername}
               onChange={(e) => setNewUsername(e.target.value)}
-              placeholder="输入您的用户名"
+              placeholder="Enter your username"
               className="max-w-md"
             />
-            <Button onClick={saveUsername}>保存</Button>
+            <Button onClick={saveUsername}>Save</Button>
             <Button
               variant="outline"
               onClick={() => {
@@ -166,12 +164,12 @@ export default function ProfileView() {
                 setNewUsername(username);
               }}
             >
-              取消
+              Cancel
             </Button>
           </div>
         ) : (
           <p className="text-gray-600 bg-gray-100 p-2 rounded">
-            {username || "未设置用户名"}
+            {username || "No username set"}
           </p>
         )}
       </div>
@@ -180,17 +178,17 @@ export default function ProfileView() {
         <TabsList className="mb-4">
           <TabsTrigger value="bookclub" className="flex items-center">
             <BookOpen className="w-4 h-4 mr-2" />
-            读书评论
+            Bookclub Reviews
           </TabsTrigger>
           <TabsTrigger value="ambient" className="flex items-center">
             <Sparkles className="w-4 h-4 mr-2" />
-            Wiki 条目
+            AmbiNet Entries
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="bookclub">
           {isLoading ? (
-            <p>加载中...</p>
+            <p>Loading...</p>
           ) : bookclubReviews.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {bookclubReviews.map((review) => (
@@ -207,14 +205,14 @@ export default function ProfileView() {
             </div>
           ) : (
             <p className="text-center py-8 text-gray-500">
-              暂无读书评论，请在读书俱乐部页面添加
+              No bookclub reviews yet, please add a review on the bookclub page
             </p>
           )}
         </TabsContent>
 
         <TabsContent value="ambient">
           {isLoading ? (
-            <p>加载中...</p>
+            <p>Loading...</p>
           ) : ambientCards.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {ambientCards.map((card) => (
@@ -231,7 +229,7 @@ export default function ProfileView() {
             </div>
           ) : (
             <p className="text-center py-8 text-gray-500">
-              暂无 Wiki 条目，请在 Wiki 页面添加
+              No ambinet entries yet, please add an entry on the ambinet page
             </p>
           )}
         </TabsContent>

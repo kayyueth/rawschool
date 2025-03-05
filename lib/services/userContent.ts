@@ -18,7 +18,7 @@ export async function fetchUserBookclubReviews(userId: string) {
     id: item.id,
     user_id: userId,
     wallet_address: userId, // 使用 userId 作为钱包地址
-    title: `Book Review #${item.book_id}`, // 使用 book_id 作为标题
+    title: item.title,
     content: item.review,
     book_id: item.book_id,
     created_at: item.created_at || new Date().toISOString(),
@@ -30,6 +30,7 @@ export async function fetchUserBookclubReviews(userId: string) {
  * 获取指定钱包地址的所有 BookclubReview
  */
 export async function fetchWalletBookclubReviews(walletAddress: string) {
+  // 首先获取用户的所有评论
   const { data, error } = await supabase
     .from("bookreview")
     .select("*")
@@ -38,12 +39,47 @@ export async function fetchWalletBookclubReviews(walletAddress: string) {
 
   if (error) throw error;
 
-  // 转换数据格式以匹配 BookclubReview 接口
+  // 如果没有评论，直接返回空数组
+  if (!data || data.length === 0) {
+    return [] as BookclubReview[];
+  }
+
+  // 获取所有相关的book_id
+  const bookIds = [...new Set(data.map((item) => item.book_id))];
+
+  // 从bookclub表中获取对应的书籍信息
+  const { data: bookData, error: bookError } = await supabase
+    .from("bookclub")
+    .select("id, title")
+    .in("id", bookIds);
+
+  if (bookError) {
+    console.error("获取书籍信息失败:", bookError);
+    // 如果获取书籍信息失败，仍然使用原来的格式
+    return data.map((item) => ({
+      id: item.id,
+      user_id: walletAddress,
+      wallet_address: walletAddress,
+      title: `Book Review #${item.book_id}`, // 使用 book_id 作为标题
+      content: item.review,
+      book_id: item.book_id,
+      created_at: item.created_at || new Date().toISOString(),
+      updated_at: item.created_at || new Date().toISOString(),
+    })) as BookclubReview[];
+  }
+
+  // 创建book_id到title的映射
+  const bookTitleMap: Record<number, string> = {};
+  bookData.forEach((book) => {
+    bookTitleMap[book.id] = book.title;
+  });
+
+  // 转换数据格式以匹配 BookclubReview 接口，使用bookclub表中的title
   return data.map((item) => ({
     id: item.id,
-    user_id: walletAddress, // 使用钱包地址作为用户ID
+    user_id: walletAddress,
     wallet_address: walletAddress,
-    title: `Book Review #${item.book_id}`, // 使用 book_id 作为标题
+    title: bookTitleMap[item.book_id] || `Book Review #${item.book_id}`, // 优先使用bookclub中的title
     content: item.review,
     book_id: item.book_id,
     created_at: item.created_at || new Date().toISOString(),
@@ -61,6 +97,7 @@ export async function createBookclubReview(
   content: string,
   bookId: number = 1 // 默认 book_id 为 1
 ) {
+  // 插入评论数据
   const { data, error } = await supabase
     .from("bookreview")
     .insert([
@@ -75,12 +112,26 @@ export async function createBookclubReview(
 
   if (error) throw error;
 
+  // 从bookclub表中获取对应的书籍标题
+  const { data: bookData, error: bookError } = await supabase
+    .from("bookclub")
+    .select("title")
+    .eq("id", bookId)
+    .single();
+
+  let bookTitle = title; // 默认使用传入的标题
+
+  // 如果成功获取到书籍标题，则使用书籍标题
+  if (!bookError && bookData) {
+    bookTitle = bookData.title;
+  }
+
   // 转换返回的数据
   return {
     id: data[0].id,
     user_id: userId,
     wallet_address: walletAddress,
-    title: title,
+    title: bookTitle,
     content: data[0].review,
     book_id: data[0].book_id,
     created_at: data[0].created_at,
@@ -104,6 +155,7 @@ export async function updateBookclubReview(
     updateData.book_id = bookId;
   }
 
+  // 更新评论
   const { data, error } = await supabase
     .from("bookreview")
     .update(updateData)
@@ -119,11 +171,25 @@ export async function updateBookclubReview(
     .eq("id", reviewId)
     .single();
 
+  // 从bookclub表中获取对应的书籍标题
+  const { data: bookData, error: bookError } = await supabase
+    .from("bookclub")
+    .select("title")
+    .eq("id", updatedReview.book_id)
+    .single();
+
+  let bookTitle = `Book Review #${updatedReview.book_id}`; // 默认标题格式
+
+  // 如果成功获取到书籍标题，则使用书籍标题
+  if (!bookError && bookData) {
+    bookTitle = bookData.title;
+  }
+
   return {
     id: updatedReview.id,
     user_id: updatedReview.reviewer,
     wallet_address: updatedReview.reviewer,
-    title: `Book Review #${updatedReview.book_id}`,
+    title: bookTitle,
     content: updatedReview.review,
     book_id: updatedReview.book_id,
     created_at: updatedReview.created_at,
