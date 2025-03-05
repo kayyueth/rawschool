@@ -10,13 +10,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import { Edit, Trash2, AlertCircle } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { useWeb3 } from "@/lib/web3Context";
@@ -35,17 +29,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { EditWikiButton, WikiEditorContent } from "./wikiEditor";
+import { WikiEditorContent } from "./wikiEditor";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import WikiEditor from "./wikiEditor";
 
 interface WikiCard {
   id: string;
@@ -120,7 +110,7 @@ export default function WikiCardComponent({
           .single();
 
         if (error) {
-          console.error("获取词条数据错误:", error);
+          console.error("Error fetching wiki item:", error);
           return;
         }
 
@@ -172,16 +162,16 @@ export default function WikiCardComponent({
 
               if (relatedSourceError) {
                 console.error(
-                  "获取相同来源词条错误:",
+                  "Error fetching related items by source:",
                   relatedSourceError.message ||
                     JSON.stringify(relatedSourceError) ||
-                    "未知错误"
+                    "Unknown error"
                 );
               } else {
                 relatedBySource = sourceData || [];
               }
             } catch (error) {
-              console.error("尝试获取相同来源词条时出错:", error);
+              console.error("Error fetching related items by source:", error);
             }
 
             let relatedByAuthor = [];
@@ -199,16 +189,16 @@ export default function WikiCardComponent({
 
                 if (relatedAuthorError) {
                   console.error(
-                    "获取相同作者词条错误:",
+                    "Error fetching related items by author:",
                     relatedAuthorError.message ||
                       JSON.stringify(relatedAuthorError) ||
-                      "未知错误"
+                      "Unknown error"
                   );
                 } else {
                   relatedByAuthor = authorData || [];
                 }
               } catch (error) {
-                console.error("尝试获取相同作者词条时出错:", error);
+                console.error("Error fetching related items by author:", error);
               }
             }
 
@@ -224,16 +214,16 @@ export default function WikiCardComponent({
 
               if (relatedAuthorError2) {
                 console.error(
-                  "获取相同作者词条错误:",
+                  "Error fetching related items by author:",
                   relatedAuthorError2.message ||
                     JSON.stringify(relatedAuthorError2) ||
-                    "未知错误"
+                    "Unknown error"
                 );
               } else {
                 relatedByAuthor2 = authorData2 || [];
               }
             } catch (error) {
-              console.error("尝试获取相同作者词条时出错:", error);
+              console.error("Error fetching related items by author:", error);
             }
 
             const combinedRelated = [
@@ -267,11 +257,11 @@ export default function WikiCardComponent({
               setRelatedItems(formattedRelated);
             }
           } catch (error) {
-            console.error("获取相关词条错误:", error);
+            console.error("Error fetching related items:", error);
           }
         }
       } catch (error) {
-        console.error("获取数据时出错:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -280,17 +270,15 @@ export default function WikiCardComponent({
     fetchWikiItem();
   }, [title]);
 
-  // 获取作者的用户名
   const fetchAuthorUsername = async (walletAddress: string) => {
     try {
       const username = await getUsernameByWalletAddress(walletAddress);
       setAuthorUsername(username);
     } catch (error) {
-      console.error("获取作者用户名失败:", error);
+      console.error("Error fetching author username:", error);
     }
   };
 
-  // 获取作者的显示名称（用户名或钱包地址）
   const getAuthorDisplayName = () => {
     if (authorUsername) {
       return authorUsername;
@@ -305,25 +293,23 @@ export default function WikiCardComponent({
       })
     : "";
 
-  // 检查当前用户是否是作者
   const isAuthor =
     account &&
     wikiData?.author &&
     account.toLowerCase() === wikiData.author.toLowerCase();
 
-  // 处理删除条目
   const handleDeleteEntry = async () => {
     if (!wikiData || !account) return;
 
     try {
       setIsDeleting(true);
       await deleteAmbientCard(wikiData.id, account);
-      toast.success("条目已成功删除");
-      onBackToList(); // 返回列表页
+      toast.success("Entry deleted successfully");
+      onBackToList();
     } catch (error) {
-      console.error("删除条目时出错:", error);
+      console.error("Error deleting entry:", error);
       toast.error(
-        error instanceof Error ? error.message : "删除条目失败，请稍后重试"
+        error instanceof Error ? error.message : "Failed to delete entry"
       );
     } finally {
       setIsDeleting(false);
@@ -331,18 +317,15 @@ export default function WikiCardComponent({
     }
   };
 
-  // 处理编辑完成后的刷新
   const handleEditComplete = () => {
     setShowEditDialog(false);
-    // 重新加载条目数据
     if (wikiData) {
       setIsLoading(true);
       fetchWikiItem(wikiData.title);
     }
-    toast.success("条目已成功更新");
+    toast.success("Entry updated successfully");
   };
 
-  // 将WikiCard格式转换为WikiItem格式，用于编辑器
   const convertToWikiItem = () => {
     if (!wikiData) return null;
 
@@ -416,21 +399,22 @@ export default function WikiCardComponent({
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>确认删除</AlertDialogTitle>
+                      <AlertDialogTitle>Confirm deletion</AlertDialogTitle>
                       <AlertDialogDescription>
-                        您确定要删除这个条目吗？此操作无法撤销。
+                        Are you sure you want to delete this entry? This action
+                        cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel disabled={isDeleting}>
-                        取消
+                        Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleDeleteEntry}
                         disabled={isDeleting}
                         className="bg-red-500 hover:bg-red-600"
                       >
-                        {isDeleting ? "删除中..." : "删除"}
+                        {isDeleting ? "Deleting..." : "Delete"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -444,7 +428,7 @@ export default function WikiCardComponent({
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
               <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>编辑词条</DialogTitle>
+                  <DialogTitle>Edit entry</DialogTitle>
                 </DialogHeader>
                 <WikiEditorContent
                   wikiItem={convertToWikiItem()!}
@@ -552,7 +536,7 @@ export default function WikiCardComponent({
         .single();
 
       if (error) {
-        console.error("获取词条数据错误:", error);
+        console.error("Error fetching wiki item:", error);
         return;
       }
 
@@ -599,16 +583,16 @@ export default function WikiCardComponent({
 
             if (relatedSourceError) {
               console.error(
-                "获取相同来源词条错误:",
+                "Error fetching related items by source:",
                 relatedSourceError.message ||
                   JSON.stringify(relatedSourceError) ||
-                  "未知错误"
+                  "Unknown error"
               );
             } else {
               relatedBySource = sourceData || [];
             }
           } catch (error) {
-            console.error("尝试获取相同来源词条时出错:", error);
+            console.error("Error fetching related items by source:", error);
           }
 
           let relatedByAuthor = [];
@@ -626,16 +610,16 @@ export default function WikiCardComponent({
 
               if (relatedAuthorError) {
                 console.error(
-                  "获取相同作者词条错误:",
+                  "Error fetching related items by author:",
                   relatedAuthorError.message ||
                     JSON.stringify(relatedAuthorError) ||
-                    "未知错误"
+                    "Unknown error"
                 );
               } else {
                 relatedByAuthor = authorData || [];
               }
             } catch (error) {
-              console.error("尝试获取相同作者词条时出错:", error);
+              console.error("Error fetching related items by author:", error);
             }
           }
 
@@ -651,16 +635,16 @@ export default function WikiCardComponent({
 
             if (relatedAuthorError2) {
               console.error(
-                "获取相同作者词条错误:",
+                "Error fetching related items by author:",
                 relatedAuthorError2.message ||
                   JSON.stringify(relatedAuthorError2) ||
-                  "未知错误"
+                  "Unknown error"
               );
             } else {
               relatedByAuthor2 = authorData2 || [];
             }
           } catch (error) {
-            console.error("尝试获取相同作者词条时出错:", error);
+            console.error("Error fetching related items by author:", error);
           }
 
           const combinedRelated = [
@@ -694,11 +678,11 @@ export default function WikiCardComponent({
             setRelatedItems(formattedRelated);
           }
         } catch (error) {
-          console.error("获取相关词条错误:", error);
+          console.error("Error fetching related items:", error);
         }
       }
     } catch (error) {
-      console.error("获取数据时出错:", error);
+      console.error("Error fetching data:", error);
     } finally {
       setIsLoading(false);
     }

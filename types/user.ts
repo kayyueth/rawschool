@@ -2,7 +2,7 @@
  * 用户相关类型定义
  */
 
-export interface User {
+export interface UserProfile {
   id: string; // UUID
   wallet_address: string; // 钱包地址
   nonce: string; // 用于签名验证的随机数
@@ -11,31 +11,45 @@ export interface User {
   profile_name?: string; // 可选的用户名（旧字段，保留向后兼容）
   profile_image?: string; // 可选的头像URL
   username?: string; // 可选的用户名（新字段）
+  bio?: string; // 用户简介
+  social_links?: SocialLinks; // 社交媒体链接
 }
 
-export interface Session {
-  token: string; // JWT令牌
-  user: User; // 用户信息
-  expires_at: number; // 过期时间戳（毫秒）
+export interface SocialLinks {
+  twitter?: string;
+  github?: string;
+  website?: string;
+  discord?: string;
+  telegram?: string;
 }
 
-export interface AuthRequest {
-  wallet_address: string; // 请求身份验证的钱包地址
+export interface UserSettings {
+  user_id: string;
+  theme_preference: "light" | "dark" | "system";
+  notification_preferences: NotificationPreferences;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface AuthChallenge {
-  wallet_address: string; // 钱包地址
-  nonce: string; // 随机数（用于签名）
-  expiration: number; // 挑战过期时间戳（毫秒）
+export interface NotificationPreferences {
+  email_notifications: boolean;
+  push_notifications: boolean;
+  marketing_emails: boolean;
 }
 
-export interface AuthVerify {
-  wallet_address: string; // 钱包地址
-  signature: string; // 签名
+// 用户活动类型
+export enum UserActivityType {
+  LOGIN = "login",
+  PROFILE_UPDATE = "profile_update",
+  CONTENT_CREATION = "content_creation",
+  CONTENT_INTERACTION = "content_interaction",
 }
 
-export interface AuthResponse {
-  success: boolean; // 认证是否成功
-  message?: string; // 错误信息（如果有）
-  session?: Session; // 会话信息（如果认证成功）
+// 用户活动记录
+export interface UserActivity {
+  id: string;
+  user_id: string;
+  activity_type: UserActivityType;
+  metadata: Record<string, unknown>;
+  created_at: string;
 }

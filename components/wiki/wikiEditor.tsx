@@ -248,7 +248,7 @@ export default function WikiEditor({
         <DialogTrigger asChild>{triggerButton}</DialogTrigger>
       </PermissionControl>
 
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-12">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? "Edit Wiki Entry" : "Add New Wiki Entry"}

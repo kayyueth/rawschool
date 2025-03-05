@@ -12,4 +12,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // 创建并导出Supabase客户端
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});
+
+// 添加错误处理的辅助函数
+export const handleSupabaseError = (error: unknown): string => {
+  const errorMessage =
+    error instanceof Error ? error.message : "未知Supabase错误";
+
+  logger.error("Supabase操作失败", { error });
+  return errorMessage;
+};

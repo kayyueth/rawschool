@@ -132,46 +132,46 @@ export default function ProfileView() {
         <p className="text-gray-600 bg-gray-100 p-2 rounded">{account}</p>
       </div>
 
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold mb-2">Username</h2>
+      <h2 className="text-xl font-semibold mb-2">Username</h2>
+
+      <div className="flex mb-6">
+        <div className="flex">
+          {isEditingUsername ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                placeholder="Enter your username"
+                className="max-w-md w-1/2"
+              />
+              <Button onClick={saveUsername}>Save</Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditingUsername(false);
+                  setNewUsername(username);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <p className="text-gray-600 bg-gray-100 p-2 rounded w-[200px]">
+              {username || "No username set"}
+            </p>
+          )}
           {!isEditingUsername && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsEditingUsername(true)}
-              className="flex items-center"
+              className="flex items-center ml-6"
             >
               <Edit2 className="w-4 h-4 mr-2" />
               Edit
             </Button>
           )}
         </div>
-
-        {isEditingUsername ? (
-          <div className="flex items-center gap-2">
-            <Input
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-              placeholder="Enter your username"
-              className="max-w-md"
-            />
-            <Button onClick={saveUsername}>Save</Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsEditingUsername(false);
-                setNewUsername(username);
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        ) : (
-          <p className="text-gray-600 bg-gray-100 p-2 rounded">
-            {username || "No username set"}
-          </p>
-        )}
       </div>
 
       <Tabs defaultValue="bookclub" className="w-full">

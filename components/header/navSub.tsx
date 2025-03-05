@@ -2,7 +2,7 @@
 
 import { Globe, Link2, LogOut, User, ScanFace } from "lucide-react";
 import { useWeb3 } from "@/lib/web3Context";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import ProfileView from "@/components/profile/ProfileView";
 
@@ -17,6 +17,7 @@ export default function NavSub() {
   } = useWeb3();
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Format address to show only first 6 and last 4 characters
@@ -49,14 +50,28 @@ export default function NavSub() {
   };
 
   // 处理连接钱包
-  const handleConnectWallet = async () => {
+  const handleConnectWallet = useCallback(async () => {
+    if (isButtonDisabled || isConnecting) return;
+
+    setIsButtonDisabled(true);
     try {
       await connectWallet();
-      toast.success("Wallet connected successfully");
+      if (!error) {
+        toast.success("Wallet connected successfully");
+      } else {
+        toast.error(error);
+      }
     } catch (err) {
-      toast.error("Failed to connect wallet");
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to connect wallet";
+      toast.error(errorMessage);
+    } finally {
+      // Add a small delay before enabling the button again
+      setTimeout(() => {
+        setIsButtonDisabled(false);
+      }, 1000);
     }
-  };
+  }, [connectWallet, error, isButtonDisabled, isConnecting]);
 
   // 处理断开连接
   const handleDisconnect = async () => {
@@ -83,7 +98,7 @@ export default function NavSub() {
           <button
             onClick={handleConnectWallet}
             className="flex text-[#FCFADE] font-semibold text-lg hover:text-gray-300 transition-colors"
-            disabled={isConnecting}
+            disabled={isConnecting || isButtonDisabled}
           >
             <Link2 className="w-6 h-6 mr-2 mt-1" />
             {isConnecting ? "Connecting..." : "Connect Wallet"}
