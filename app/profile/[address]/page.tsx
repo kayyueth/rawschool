@@ -18,11 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, BookOpen, Sparkles } from "lucide-react";
+import { BookOpen, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AddReviewModal from "@/components/profile/AddReviewModal";
-import AddCardModal from "@/components/profile/AddCardModal";
 
 interface ProfilePageProps {
   params: {
@@ -32,15 +29,12 @@ interface ProfilePageProps {
 
 export default function ProfilePage({ params }: ProfilePageProps) {
   const { address } = params;
-  const { account, user } = useWeb3();
+  const { account } = useWeb3();
   const router = useRouter();
   const [isOwner, setIsOwner] = useState(false);
   const [bookclubReviews, setBookclubReviews] = useState<BookclubReview[]>([]);
   const [ambientCards, setAmbientCards] = useState<AmbientCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("bookclub");
-  const [showAddReviewModal, setShowAddReviewModal] = useState(false);
-  const [showAddCardModal, setShowAddCardModal] = useState(false);
 
   // Format address for display
   const formatAddress = (address: string) => {
@@ -86,39 +80,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   }, [address]);
 
   // Handle view change
-  const handleViewChange = (view: "book" | "reviews" | "join" | "wiki") => {
+  const handleViewChange = () => {
     router.push("/");
-  };
-
-  // Handle tab change
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-
-  // Handle add new review
-  const handleAddReview = () => {
-    setShowAddReviewModal(true);
-  };
-
-  // Handle add new card
-  const handleAddCard = () => {
-    setShowAddCardModal(true);
-  };
-
-  // Handle review added
-  const handleReviewAdded = async () => {
-    if (address) {
-      const reviews = await fetchWalletBookclubReviews(address);
-      setBookclubReviews(reviews);
-    }
-  };
-
-  // Handle card added
-  const handleCardAdded = async () => {
-    if (address) {
-      const cards = await fetchWalletAmbientCards(address);
-      setAmbientCards(cards);
-    }
   };
 
   return (
@@ -144,11 +107,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           )}
         </div>
 
-        <Tabs
-          defaultValue="bookclub"
-          className="w-full"
-          onValueChange={handleTabChange}
-        >
+        <Tabs defaultValue="bookclub" className="w-full">
           <div className="flex justify-between items-center mb-4">
             <TabsList>
               <TabsTrigger value="bookclub" className="flex items-center">
@@ -160,20 +119,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                 灵感卡片
               </TabsTrigger>
             </TabsList>
-
-            {isOwner && activeTab === "bookclub" && (
-              <Button onClick={handleAddReview} className="flex items-center">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                添加评论
-              </Button>
-            )}
-
-            {isOwner && activeTab === "ambient" && (
-              <Button onClick={handleAddCard} className="flex items-center">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                添加卡片
-              </Button>
-            )}
           </div>
 
           <TabsContent value="bookclub">
@@ -229,24 +174,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* 添加评论模态框 */}
-      {showAddReviewModal && (
-        <AddReviewModal
-          isOpen={showAddReviewModal}
-          onClose={() => setShowAddReviewModal(false)}
-          onSuccess={handleReviewAdded}
-        />
-      )}
-
-      {/* 添加卡片模态框 */}
-      {showAddCardModal && (
-        <AddCardModal
-          isOpen={showAddCardModal}
-          onClose={() => setShowAddCardModal(false)}
-          onSuccess={handleCardAdded}
-        />
-      )}
     </div>
   );
 }
