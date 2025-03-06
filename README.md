@@ -3,7 +3,7 @@
 Raw School is a crypto-humanities reading project initiated by the Uncommons community, dedicated to providing a decentralized knowledge exploration platform for learners and researchers. The website features two core functions:
 
 1. **BookClub** – Logs reading club events and book lists while offering a review aggregation dashboard, allowing users to publish and browse reading notes.
-2. **Ambient Project** – A decentralized academic glossary that empowers community members to define and expand terminology, collaboratively building an open knowledge system.
+2. **AmbiNet Project** – A decentralized academic glossary that empowers community members to define and expand terminology, collaboratively building an open knowledge system.
 
 The website integrates Web3 functionalities, enabling users to connect their crypto wallets and contribute book reviews and wiki entries based on their wallet address identity. All data is stored on Arweave, ensuring decentralization and long-term persistence.
 
@@ -12,7 +12,7 @@ The website integrates Web3 functionalities, enabling users to connect their cry
 - **Web3 Wallet Authentication**: Connect with crypto wallets for secure authentication
 - **Book Club System**: Browse, review, and interact with book club content
 - **Wiki Component**: View and manage wiki entries with detailed content
-- **Ambient Card System**: Create and share ambient cards
+- **AmbiNet Card System**: Create and share AmbiNet cards
 - **Profile Management**: Manage user profiles with wallet integration
 - **Real-time Clock**: Interactive clock component
 
@@ -90,7 +90,7 @@ The application uses a PostgreSQL database with the following main tables:
 - `users`: Stores user information including wallet addresses
 - `sessions`: Manages authentication sessions
 - `bookclub_reviews`: Stores book reviews submitted by users
-- `ambient_cards`: Stores ambient card content created by users
+- `ambinet_cards`: Stores ambinet card content created by users
 
 ## Authentication Flow
 
