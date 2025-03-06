@@ -36,19 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-interface WikiCard {
-  id: string;
-  title: string;
-  content: string;
-  definition: string;
-  source: string;
-  author: string;
-  aiGenerated: boolean;
-  createdDate: string;
-  lastEditedTime: string;
-  aiModel: string | null;
-}
+import { WikiCard } from "./types";
 
 interface WikiCardProps {
   title: string;

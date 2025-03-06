@@ -1,6 +1,5 @@
-import FallingText from "./fallingText";
 import { MoveRight } from "lucide-react";
-import { useState, Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 
 interface WikiHomeProps {
   onViewChange?: Dispatch<
@@ -25,15 +24,6 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
               Decentralizing Meaning, <br />
               Preserving Complexity.
             </h2>
-          </div>
-          <div className="mt-40">
-            <FallingText
-              text="数位隐私 密码战争 针对性监控 寒蝉效应 特殊訪問"
-              fontSize="1.5rem"
-              trigger="auto"
-              gravity={0.1}
-              mouseConstraintStiffness={0.4}
-            />
           </div>
         </div>
 

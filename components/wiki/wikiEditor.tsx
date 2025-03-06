@@ -19,21 +19,7 @@ import { Plus, Pencil } from "lucide-react";
 import PermissionControl from "@/components/auth/PermissionControl";
 import { getUsernameByWalletAddress } from "@/lib/auth/userService";
 import { v4 as uuidv4 } from "uuid";
-
-interface WikiItem {
-  id?: string;
-  词条名称: string;
-  "定义/解释/翻译校对": string;
-  "来源Soucre / 章节 Chapter": string;
-  Property?: string;
-  "人工智能生成 AI-generated": boolean;
-  Date?: string;
-  "Last edited time"?: string;
-  人工智能模型?: string | null;
-  内容: string;
-  Author: string;
-  wallet_address?: string | null;
-}
+import { WikiItem } from "./types";
 
 interface WikiEditorProps {
   wikiItem?: WikiItem | null;
