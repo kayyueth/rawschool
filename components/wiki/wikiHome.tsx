@@ -11,16 +11,16 @@ interface WikiHomeProps {
 
 export default function WikiHome({ onViewChange }: WikiHomeProps) {
   return (
-    <div className="flex flex-col min-h-screen bg-[#FCFADE] px-24 py-12">
+    <div className="flex flex-col min-h-screen bg-[#FCFADE] px-10 md:px-24 py-12">
       {/* Top Section - Split into Two Columns */}
-      <div className="flex justify-between mb-20">
+      <div className="md:flex grid justify-between md:mb-20 mb-6">
         {/* Left Column - Title and Animation */}
         <div className="relative w-1/2">
           <div className="flex">
-            <h1 className="absolute text-7xl font-bold z-[5] whitespace-nowrap top-5">
+            <h1 className="absolute md:text-7xl text-xl font-bold z-[5] whitespace-nowrap md:top-5">
               AmbiNet Project
             </h1>
-            <h2 className="absolute text-4xl top-28 text-black/20 font-bold">
+            <h2 className="absolute md:text-4xl text-xl md:top-28 top-10 text-black/20 font-bold">
               Decentralizing Meaning, <br />
               Preserving Complexity.
             </h2>
@@ -28,31 +28,41 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
         </div>
 
         {/* Right Column - Project Info */}
-        <div className="w-1/2 pt-5 pl-20">
+        <div className="md:w-1/2 md:pt-5 md:pl-20 pt-60 w-[310px]">
           <div className="space-y-2">
             <div className="flex justify-between border-b-2 border-black/20 pb-2">
-              <h3 className="text-lg font-black text-black/20">Timeline</h3>
-              <p className="text-lg">Feb 2025 - Present</p>
+              <h3 className="md:text-lg text-sm font-black text-black/20">
+                Timeline
+              </h3>
+              <p className="md:text-lg text-sm">Feb 2025 - Present</p>
             </div>
             <div className="flex justify-between border-b-2 border-black/20 pb-2">
-              <h3 className="text-lg font-black text-black/20">Initiator</h3>
-              <p className="text-lg">7k, Kay</p>
+              <h3 className="md:text-lg text-sm font-black text-black/20">
+                Initiator
+              </h3>
+              <p className="md:text-lg text-sm">7k, Kay</p>
             </div>
             <div className="flex justify-between border-b-2 border-black/20 pb-2">
-              <h3 className="text-lg font-black text-black/20">Audience</h3>
-              <p className="text-lg">Academia</p>
+              <h3 className="md:text-lg text-sm font-black text-black/20">
+                Audience
+              </h3>
+              <p className="md:text-lg text-sm">Academia</p>
             </div>
             <div className="flex justify-between border-b-2 border-black/20 pb-2">
-              <h3 className="text-lg font-black text-black/20">Data Source</h3>
-              <p className="text-lg">Raw School Bookclub</p>
+              <h3 className="md:text-lg text-sm font-black text-black/20">
+                Data Source
+              </h3>
+              <p className="md:text-lg text-sm">Raw School Bookclub</p>
             </div>
             <div className="flex justify-between border-b-2 border-black/20 pb-2">
-              <h3 className="text-lg font-black text-black/20">Tech Stack</h3>
-              <p className="text-lg">Arweave, Bundler</p>
+              <h3 className="md:text-lg text-sm font-black text-black/20">
+                Tech Stack
+              </h3>
+              <p className="md:text-lg text-sm">Arweave, Bundler</p>
             </div>
             <div className="flex justify-end gap-4">
               <button
-                className="text-3xl font-black mt-10"
+                className="md:text-3xl text-sm font-black mt-10"
                 onClick={() => onViewChange && onViewChange("wikiData")}
               >
                 Click to Enter
@@ -64,11 +74,11 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
       </div>
 
       {/* Bottom Section - Project Details */}
-      <div className="text-lg mb-20 border-t-2 border-black pt-6 flex gap-20">
+      <div className="mb-20 border-t-2 border-black pt-6 md:flex gap-20">
         {/* Left Column - Background */}
-        <div className="w-1/2">
-          <h3 className="font-bold text-2xl text-black/20">BACKGROUND</h3>
-          <p className="mt-2 text-2xl">
+        <div className="md:w-1/2 w-[310px]">
+          <h3 className="font-bold md:text-2xl text-black/20">BACKGROUND</h3>
+          <p className="mt-2 md:text-2xl">
             The foundation of computer engineering is{" "}
             <span className="font-bold">code</span>, while the foundation of
             humanities research is <span className="font-bold">concepts</span>
@@ -86,7 +96,7 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
             work—literature reviews, conceptual analysis, reading notes—could be
             preserved and shared rather than discarded like worn-out scraps.
           </p>
-          <p className="mt-6 text-2xl">
+          <p className="mt-6 md:text-2xl">
             How does this differ from existing tools such as Wikipedia and other
             collaborative dictionary platforms designed for humanities scholars?
             In truth, any dictionary that deals with humanities concepts must
@@ -104,8 +114,10 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
             phenomenon that should be viewed with caution, both in academic
             discourse and in everyday language.
           </p>
-          <h3 className="mt-6 font-bold text-2xl text-black/20">HOW TO JOIN</h3>
-          <p className="mt-2 text-2xl">
+          <h3 className="mt-6 font-bold md:text-2xl text-black/20">
+            HOW TO JOIN
+          </h3>
+          <p className="mt-2 md:text-2xl">
             We are looking for{" "}
             <span className="font-bold">
               scholars, writers, coders, and knowledge enthusiasts
@@ -132,9 +144,11 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
           </p>
         </div>
         {/* Right Column - Project Details */}
-        <div className="w-1/2">
-          <h3 className="font-bold text-2xl text-black/20">PRODUCT DESIGN</h3>
-          <p className="mt-2 text-2xl">
+        <div className="md:w-1/2 w-[310px]">
+          <h3 className="font-bold md:text-2xl text-black/20 mt-6 md:mt-0">
+            PRODUCT DESIGN
+          </h3>
+          <p className="mt-2 md:text-2xl">
             Through product design, we believe we can provide a tool better
             suited for{" "}
             <span className="font-bold">
@@ -142,8 +156,8 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
             </span>
             . This tool will be composed of the following three main components:
           </p>
-          <h3 className="mt-6 font-bold text-2xl text-black/20">CONTENT:</h3>
-          <p className="mt-2 text-2xl">
+          <h3 className="mt-6 font-bold md:text-2xl text-black/20">CONTENT:</h3>
+          <p className="mt-2 md:text-2xl">
             Concepts will be linked to books or academic literature (with the
             potential to gradually expand to include web pages, videos, and
             other sources). Contributors must submit the{" "}
@@ -153,13 +167,13 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
             citation formats can be automatically generated by the system).
             Users can contribute two types of entries:
           </p>
-          <li className="mt-2 text-2xl font-bold">
+          <li className="mt-2 md:text-2xl text-sm font-bold">
             One-line (concise definitions)
           </li>
-          <li className="mb-2 text-2xl font-bold">
+          <li className="mb-2 md:text-2xl text-sm font-bold">
             Para-graph (parallel reflections)
           </li>
-          <p className="mt-2 text-2xl">
+          <p className="mt-2 md:text-2xl text-sm">
             <span className="font-bold">One-line entries</span> involve directly
             extracting the author's explicit definition of a concept from the
             text, while <span className="font-bold">Para-graph entries</span>{" "}
@@ -169,10 +183,10 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
             <span className="font-bold">Para-graph entries</span> are not
             confined to a single paragraph.
           </p>
-          <h3 className="mt-6 font-bold text-2xl text-black/20">
+          <h3 className="mt-6 font-bold md:text-2xl text-black/20">
             AI-Generated Baseline Entries:
           </h3>
-          <p className="mt-2 text-2xl">
+          <p className="mt-2 md:text-2xl text-sm">
             The system will generate{" "}
             <span className="font-bold">AI-assisted baseline entries</span> for
             comparison. AI will serve both as a reference to support entry
@@ -182,22 +196,22 @@ export default function WikiHome({ onViewChange }: WikiHomeProps) {
             <span className="font-bold">long-term experiment</span> to assess
             the claim that "AI will replace the humanities."
           </p>
-          <h3 className="mt-6 font-bold text-2xl text-black/20">
+          <h3 className="mt-6 font-bold md:text-2xl text-black/20">
             Credibility & Evaluation System:
           </h3>
-          <p className="mt-2 text-2xl">
+          <p className="mt-2 md:text-2xl text-sm">
             The tool will experiment with{" "}
             <span className="font-bold">
               collaborative citation verification
             </span>
             , allowing users to collectively verify references within entries.
           </p>
-          <li className="mt-2 text-2xl">
+          <li className="mt-2 md:text-2xl text-sm">
             Since this is an internal test phase, we will not initially consider{" "}
             <span className="font-bold">counter measures</span> for malicious
             edits or spam entries.
           </li>
-          <li className="mt-2 text-2xl">
+          <li className="mt-2 md:text-2xl text-sm">
             In the final version, we may adopt a{" "}
             <span className="font-bold">social wiki</span> model, where
             moderation is based on user reputation, social context, and a trust

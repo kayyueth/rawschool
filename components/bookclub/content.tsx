@@ -263,7 +263,7 @@ export default function Content({ selectedData }: ContentProps) {
   };
 
   return (
-    <div className="mt-10 text-left">
+    <div className="md:mt-10 text-left">
       {!showReviews ? (
         <>
           <button
@@ -272,15 +272,19 @@ export default function Content({ selectedData }: ContentProps) {
           >
             BOOKCLUB REVIEW <ArrowRight className="ml-2" />
           </button>
-          <h3 className="w-[250px] border border-black rounded-full p-2 text-center text-xl mt-40 ml-10">
+          <h3 className="md:w-[250px] w-[180px] border border-black rounded-full p-2 text-center text-sm md:text-xl mt-10 md:mt-40 md:ml-10">
             {content.season}
           </h3>
-          <h1 className="text-2xl font-bold mt-5 ml-10">{content.title}</h1>
-          <p className="text-xl mt-2 ml-10">Guest: {content.people}</p>
-          <p className="mt-2 mb-6 ml-10 max-w-[800px]">{content.description}</p>
+          <h1 className="md:text-2xl font-bold mt-5 md:ml-10 w-[300px] md:w-auto">
+            {content.title}
+          </h1>
+          <p className="md:text-xl mt-2 md:ml-10">Guest: {content.people}</p>
+          <p className="mt-2 md:mb-6 md:ml-10 max-w-[800px] w-[300px] md:w-auto">
+            {content.description}
+          </p>
         </>
       ) : (
-        <div className="h-[800px] flex flex-col">
+        <div className="md:h-[800px] w-[300px] md:w-auto flex flex-col">
           <div className="absolute right-20">
             {isConnected && (
               <Dialog
@@ -344,7 +348,7 @@ export default function Content({ selectedData }: ContentProps) {
           >
             <ArrowLeft className="mr-2" /> BACK TO BOOK
           </button>
-          <h1 className="text-2xl font-bold mb-8 mt-6 text-left">
+          <h1 className="md:text-2xl font-bold mb-8 mt-6 text-left">
             {content.title}
           </h1>
           <div className="space-y-8 text-left overflow-y-auto flex-1 pr-4">
@@ -355,7 +359,7 @@ export default function Content({ selectedData }: ContentProps) {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-xl font-bold">
+                    <p className="md:text-xl font-bold">
                       {getReviewerDisplayName(review.reviewer)}
                     </p>
                     <p className="text-sm text-gray-600 mb-4">

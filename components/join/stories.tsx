@@ -49,7 +49,7 @@ export default function Stories() {
       <img src="map.png" className="w-full h-auto" />
 
       {/* data points */}
-      <div className="flex gap-24 mt-12">
+      <div className="md:flex gap-24 mt-12">
         <div>
           <div className="flex gap-4 mb-2">
             <p className="text-4xl font-bold">300+</p>

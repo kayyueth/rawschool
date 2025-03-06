@@ -35,9 +35,9 @@ export default function JoinUs() {
   };
 
   return (
-    <div className="flex mt-20 ml-20 justify-between">
+    <div className="md:flex md:mt-20 md:ml-20 justify-between">
       {/* nav at left */}
-      <div className="w-1/5 ml-20">
+      <div className="md:w-1/5 w-full md:ml-20 px-8 md:px-0">
         <Accordion
           type="multiple"
           defaultValue={["item-1", "item-2"]}
@@ -116,7 +116,9 @@ export default function JoinUs() {
       </div>
 
       {/* content */}
-      <div className="w-[60%] mr-40">{renderContent()}</div>
+      <div className="md:w-[60%] w-full md:mr-40 px-8 md:px-0">
+        {renderContent()}
+      </div>
     </div>
   );
 }

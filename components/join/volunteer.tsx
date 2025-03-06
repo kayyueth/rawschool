@@ -44,8 +44,8 @@ export default function Volunteer() {
           environment.
         </p>
 
-        <div className="flex justify-between gap-12">
-          <div className="w-1/2">
+        <div className="md:flex justify-between gap-12">
+          <div className="md:w-1/2">
             <h2 className="text-3xl mb-2">Responsibilities</h2>
             <li className="text-xl">
               <span className="font-bold">Discussion Facilitator:</span> Assist
@@ -66,8 +66,8 @@ export default function Volunteer() {
             </li>
           </div>
 
-          <div className="w-1/2">
-            <h2 className="text-3xl mb-2">Benefits</h2>
+          <div className="md:w-1/2">
+            <h2 className="text-3xl mb-2 mt-2 md:mt-0">Benefits</h2>
             <li className="text-xl">
               <span className="font-bold">Stake-Free Participation:</span> TAs
               are exempt from staking requirements and can participate in all
@@ -93,7 +93,7 @@ export default function Volunteer() {
       </div>
 
       {/* Donation & Support */}
-      <div className="mt-12 border-b-2 border-gray-200 pb-12">
+      <div className="md:mt-12 mt-6 border-b-2 border-gray-200 pb-12">
         <h2 className="text-3xl mb-2">Donation & Support</h2>
         <p className="text-2xl mb-4">
           Raw School is a{" "}
@@ -101,8 +101,8 @@ export default function Volunteer() {
           on the generosity of our community to continue its work. If you would
           like to support our mission, please consider making a donation. ✨🌿📖
         </p>
-        <div className="flex justify-between">
-          <img src="/garden.png" alt="donation" className="w-1/2 mt-6" />
+        <div className="md:flex justify-between">
+          <img src="/garden.png" alt="donation" className="md:w-1/2 mt-6" />
           <div className="flex flex-col gap-2 mt-6 mr-20 text-2xl">
             <div className="flex justify-between gap-16">
               <div>

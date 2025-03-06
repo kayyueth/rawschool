@@ -93,7 +93,7 @@ export default function Home() {
       ) : (
         <div className="flex flex-col md:flex-row justify-start items-start px-4 md:px-12 lg:px-24 relative">
           {/* Clock and List View - 固定宽度确保不会挤压 */}
-          <div className="w-full md:w-auto relative mt-10">
+          <div className="w-full md:w-auto relative mt-10 hidden md:block">
             {/* Toggle and Controls */}
             <div className="absolute z-10 flex items-center space-x-4 w-full">
               <div className="flex items-center space-x-2">
@@ -145,12 +145,6 @@ export default function Home() {
           {/* Label - 绝对定位改为相对定位，确保在各种屏幕尺寸上不会重叠 */}
           <div className="md:flex h-screen hidden">
             <Label />
-          </div>
-
-          {/* 小屏幕上的水平Label */}
-          <div className="md:hidden w-full mt-8 border-t-2 border-b-2 border-black py-2 flex justify-between">
-            <span>Feb 15th, 2025</span>
-            <span className="font-black">RADICAL CRYPTOGRAPHY</span>
           </div>
 
           {/* Content */}

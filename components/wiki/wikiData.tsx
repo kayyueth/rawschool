@@ -85,20 +85,22 @@ const FlipCard = ({
         {flipCardStyles}
       </style>
       <div
-        className="h-[400px] w-full perspective-1000 cursor-pointer"
+        className="md:h-[400px] h-[280px] w-full perspective-1000 cursor-pointer"
         onClick={handleCardClick}
       >
         <div
-          className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${
+          className={`relative w-full md:h-full transition-transform duration-500 transform-style-3d ${
             isFlipped ? "rotate-y-180" : ""
           }`}
         >
           {/* card front */}
-          <div className="absolute w-full h-full backface-hidden bg-[#FCFADE] rounded-lg shadow-xl p-6 flex flex-col border border-black">
-            <h3 className="text-2xl font-bold border-b-2 border-black pb-2">
+          <div className="absolute w-full md:h-full backface-hidden bg-[#FCFADE] rounded-lg shadow-xl p-6 flex flex-col border border-black">
+            <h3 className="md:text-2xl text-xl font-bold border-b-2 border-black pb-2">
               {card.title}
             </h3>
-            <p className="text-lg mt-4 flex-grow">{card.frontContent}</p>
+            <p className="md:text-lg text-sm mt-4 flex-grow">
+              {card.frontContent}
+            </p>
             <div className="mt-4 text-sm text-black/60">
               <button
                 className="bg-black text-white px-4 py-1 rounded hover:bg-black/70 transition-colors"
@@ -110,11 +112,13 @@ const FlipCard = ({
           </div>
 
           {/* card back */}
-          <div className="absolute w-full h-full backface-hidden bg-black text-white rounded-lg shadow-xl p-6 rotate-y-180 flex flex-col">
-            <h3 className="text-2xl font-bold border-b-2 border-white pb-2">
+          <div className="absolute w-full md:h-full backface-hidden bg-black text-white rounded-lg shadow-xl p-6 rotate-y-180 flex flex-col">
+            <h3 className="md:text-2xl text-xl font-bold border-b-2 border-white pb-2">
               {card.title}
             </h3>
-            <p className="text-lg mt-4 flex-grow">{card.backContent}</p>
+            <p className="md:text-lg text-sm mt-4 flex-grow">
+              {card.backContent}
+            </p>
             <div className="mt-4 text-sm">
               <p>作者: {card.author}</p>
               <p>来源: {card.source}</p>
@@ -331,17 +335,19 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
   }, []);
 
   const content = (
-    <div className="min-h-screen bg-[#FCFADE] px-24 py-12">
+    <div className="md:min-h-screen bg-[#FCFADE] md:px-24 py-12">
       <div className="flex flex-col items-center">
-        <h1 className="text-6xl font-bold mb-8 mt-12">AmbiNet Database</h1>
-        <p className="text-3xl mb-12 w-2/3 text-center text-black/60">
+        <h1 className="md:text-6xl text-2xl font-bold mb-4 md:mb-8 md:mt-12">
+          AmbiNet Database
+        </h1>
+        <p className="md:text-3xl text-sm mb-6 md:mb-12 md:w-2/3 w-[310px] text-center text-black/60">
           Based on the data generated through daily operations, we explore how
           to create a sustainable collaborative platform and assistive tools for
           contemporary humanities researchers, writers, and enthusiasts—a GitHub
           for humanities scholars.
         </p>
 
-        <div className="flex w-[600px] relative">
+        <div className="flex md:w-[600px] w-[310px] relative">
           <div className="flex-1 border border-black rounded-l-md overflow-visible bg-[#FCFADE] relative">
             <div className="flex items-center border-b px-3">
               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -462,7 +468,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
             )}
           </div>
           <Button
-            className="h-[42px] bg-black text-white font-black text-sm rounded-l-none rounded-r-md hover:bg-black/60"
+            className="h-[43px] bg-black text-white font-black text-sm rounded-l-none rounded-r-md hover:bg-black/60"
             onClick={() => {
               if (isAuthorSearchQuery(searchQuery)) {
                 handleAuthorSearch(searchQuery);
@@ -535,17 +541,17 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
         )}
       </div>
 
-      <div className="mt-16 mb-4 text-center text-lg">
+      <div className="md:mt-16 mb-4 text-center text-lg">
         {searchFeedback && <p>{searchFeedback}</p>}
       </div>
 
-      <div id="results-section" className="mt-8 mb-20">
-        <h2 className="text-3xl font-bold mb-8 text-center">
-          {searchQuery.trim() ? "搜索结果" : "Featured Concepts"}
+      <div id="results-section" className="mt-8 px-10 md:px-24 md:mb-20">
+        <h2 className="md:text-3xl text-2xl font-bold mb-4 md:mb-8 text-center">
+          {searchQuery.trim() ? "Search Results" : "Featured Concepts"}
         </h2>
         {filteredCards.length > 0 ? (
           <Carousel className="w-full max-w-5xl mx-auto">
-            <CarouselContent className="-ml-4">
+            <CarouselContent>
               {filteredCards.map((card) => (
                 <CarouselItem key={card.id} className="pl-4 md:basis-1/3">
                   <FlipCard card={card} onViewDetail={handleNavigate} />
@@ -558,7 +564,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
             </div>
           </Carousel>
         ) : (
-          <div className="text-center text-xl">
+          <div className="text-center md:text-xl text-sm">
             No matching concepts found, please try other keywords
           </div>
         )}

@@ -46,7 +46,7 @@ export default function Clock({ onDataSelect, monthData }: ClockProps) {
       : [];
 
   return (
-    <div className="relative min-w-[750px] min-h-[750px] w-[750px] h-[750px] mx-auto">
+    <div className="relative min-w-[750px] min-h-[750px] w-[750px] h-[750px] mx-auto hidden md:block">
       <div
         style={{
           width: CLOCK_SIZE,

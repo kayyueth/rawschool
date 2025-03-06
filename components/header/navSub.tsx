@@ -92,14 +92,14 @@ export default function NavSub() {
   };
 
   return (
-    <div className="flex justify-between items-center py-4 px-6 bg-black ml-20 mr-20">
+    <div className="flex justify-between items-center py-4 px-6 bg-black md:ml-20 md:mr-20 h-8 md:h-16">
       <div className="flex items-center">
         <button
           onClick={toggleLanguage}
           className="flex items-center hover:opacity-80 transition-opacity"
         >
-          <Globe className="text-[#FCFADE] w-6 h-6 mr-2" />
-          <span className="text-[#FCFADE] font-semibold text-lg">
+          <Globe className="text-[#FCFADE] w-4 h-4 md:w-6 md:h-6 mr-2" />
+          <span className="text-[#FCFADE] font-semibold text-xs md:text-lg">
             {t("english.language")}
           </span>
         </button>
@@ -109,10 +109,10 @@ export default function NavSub() {
         {!isConnected ? (
           <button
             onClick={handleConnectWallet}
-            className="flex text-[#FCFADE] font-semibold text-lg hover:text-gray-300 transition-colors"
+            className="flex text-[#FCFADE] font-semibold text-xs md:text-lg hover:text-gray-300 transition-colors"
             disabled={isConnecting || isButtonDisabled}
           >
-            <Link2 className="w-6 h-6 mr-2 mt-1" />
+            <Link2 className="w-4 h-4 md:w-6 md:h-6 mr-2 md:mt-1" />
             {isConnecting ? t("connecting") : t("connect.wallet")}
           </button>
         ) : (

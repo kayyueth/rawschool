@@ -33,12 +33,12 @@ export default function Project() {
         An interdisciplinary liberal arts experience on crypto humanities
         through peer-to-peer seminars and collaborative learning
       </h3>
-      <div className="flex gap-10">
+      <div className="md:flex gap-10">
         <div className="mt-10">
           <img src="/org1.png" alt="Project" />
           <img src="/org2.png" alt="Project" />
         </div>
-        <p className="text-lg mt-10 w-[2000px]">
+        <p className="text-lg mt-10 md:w-[2000px]">
           Raw School was established as a community-incubated workstream and
           piloted within the community in October 2023 under the Playstream (PS)
           format. From October 2023 to May 2024, it successfully ran two

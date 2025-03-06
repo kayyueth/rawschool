@@ -333,14 +333,14 @@ export default function WikiCardComponent({
   };
 
   const content = (
-    <div className="min-h-screen bg-[#FCFADE] px-24 py-12">
+    <div className="md:min-h-screen bg-[#FCFADE] md:px-24 px-8 py-12">
       {isLoading ? (
         <div className="flex justify-center items-center h-[70vh]">
-          <p className="text-2xl">Loading...</p>
+          <p className="md:text-2xl text-xl">Loading...</p>
         </div>
       ) : !wikiData ? (
         <div className="flex flex-col justify-center items-center h-[70vh]">
-          <p className="text-2xl">No such item found</p>
+          <p className="md:text-2xl text-xl">No such item found</p>
           <Button
             className="mt-6 bg-black text-white hover:bg-black/70"
             onClick={onBackToList}
@@ -427,48 +427,56 @@ export default function WikiCardComponent({
           )}
 
           {/* 词条详情 */}
-          <div className="bg-[#FCFADE] rounded-lg shadow-xl p-12 mb-16 border border-black">
-            <h1 className="text-5xl font-bold mb-6">{wikiData.title}</h1>
+          <div className="bg-[#FCFADE] rounded-lg shadow-xl md:p-12 p-6 md:mb-16 mb-8 border border-black">
+            <h1 className="md:text-5xl text-2xl font-bold md:mb-6 mb-2">
+              {wikiData.title}
+            </h1>
 
-            <div className="grid grid-cols-2 gap-8 mb-8">
+            <div className="md:grid md:grid-cols-2 gap-8 md:mb-8 mb-4">
               <div className="col-span-2 md:col-span-1">
-                <p className="text-black/60 mb-1">
-                  Definition/Explanation/Translation
+                <p className="text-black/60 mb-1 md:text-sm text-xs">
+                  Definition
                 </p>
-                <p className="text-xl">{wikiData.definition}</p>
+                <p className="md:text-xl text-xs">{wikiData.definition}</p>
               </div>
 
               <div className="col-span-2 md:col-span-1">
-                <p className="text-black/60 mb-1">Source/Chapter</p>
-                <p className="text-xl">{wikiData.source}</p>
+                <p className="text-black/60 mb-1 md:text-sm text-xs">
+                  Source/Chapter
+                </p>
+                <p className="md:text-xl text-xs">{wikiData.source}</p>
               </div>
 
               <div className="col-span-2 md:col-span-1">
-                <p className="text-black/60 mb-1">Author</p>
-                <p className="text-xl">{getAuthorDisplayName()}</p>
+                <p className="text-black/60 mb-1 md:text-sm text-xs">Author</p>
+                <p className="md:text-xl text-xs">{getAuthorDisplayName()}</p>
               </div>
 
               <div className="col-span-2 md:col-span-1">
-                <p className="text-black/60 mb-1">Creation Method</p>
-                <p className="text-xl">
+                <p className="text-black/60 mb-1 md:text-sm text-xs">
+                  Creation Method
+                </p>
+                <p className="md:text-xl text-xs">
                   {wikiData.aiGenerated ? "AI generated" : "Manual editing"}
                 </p>
                 {wikiData.aiGenerated && wikiData.aiModel && (
-                  <p className="text-md text-black/70">
+                  <p className="md:text-md text-xs text-black/70">
                     Model used: {wikiData.aiModel}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="mb-12 border-t border-black pt-8">
-              <p className="text-black/60 mb-4">Content</p>
-              <div className="text-xl whitespace-pre-wrap">
+            <div className="md:mb-12 mb-4 border-t border-black md:pt-8 pt-4">
+              <p className="text-black/60 md:mb-4 md:text-sm text-xs">
+                Content
+              </p>
+              <div className="md:text-xl text-xs whitespace-pre-wrap">
                 {wikiData.content}
               </div>
             </div>
 
-            <div className="text-black/50 text-sm">
+            <div className="text-black/50 text-xs md:text-sm">
               <p>Creation date: {formattedDate}</p>
               <p>Last edited: {wikiData.lastEditedTime}</p>
             </div>
@@ -476,14 +484,16 @@ export default function WikiCardComponent({
 
           {/* 相关词条部分 */}
           {relatedItems.length > 0 && (
-            <div className="mt-16 mb-20">
-              <h2 className="text-3xl font-bold mb-8">Related items</h2>
+            <div className="md:mt-16 mb-20">
+              <h2 className="md:text-3xl text-xl font-bold md:mb-8 mb-4">
+                Related items
+              </h2>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-4">
                   {relatedItems.map((item) => (
                     <CarouselItem
                       key={item.id}
-                      className="pl-4 md:basis-1/3 lg:basis-1/4"
+                      className="pl-4 text-xs md:text-sm md:basis-1/3 lg:basis-1/4"
                     >
                       <RelatedCard
                         card={item}

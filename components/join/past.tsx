@@ -33,9 +33,9 @@ export default function Past() {
       </div>
 
       {/* Content */}
-      <div className="mt-8 grid grid-cols-2 gap-14">
+      <div className="mt-8 md:grid grid-cols-2 gap-14">
         {/* Study Room */}
-        <div className="">
+        <div className="mb-8 md:mb-0">
           <h2 className="text-4xl mb-2">Study Room</h2>
           <p>2023 Oct - 2023 Nov</p>
           <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
@@ -61,7 +61,7 @@ export default function Past() {
         </div>
 
         {/* Reading Group */}
-        <div className="">
+        <div className="mb-8 md:mb-0">
           <h2 className="text-4xl mb-1">Reading Group</h2>
           <p>2024 Jan - 2024 Apr</p>
           <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
@@ -100,7 +100,7 @@ export default function Past() {
         </div>
 
         {/* Guest Lecture */}
-        <div className="mt-4">
+        <div className="mt-4 mb-8 md:mb-0">
           <h2 className="text-4xl mb-1">Guest Lecture</h2>
           <p>2024 Jan - 2024 Apr</p>
           <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
@@ -134,7 +134,7 @@ export default function Past() {
         </div>
 
         {/* Debate Competition */}
-        <div>
+        <div className="mb-8 md:mb-0">
           <h2 className="text-4xl mb-1">Debate Competition</h2>
           <p>2024 Apr - 2024 May</p>
           <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
@@ -157,7 +157,7 @@ export default function Past() {
         </div>
 
         {/* Joint Event */}
-        <div>
+        <div className="mb-8 md:mb-0">
           <h2 className="text-4xl mb-1">Joint Event</h2>
           <p>2024 Mar - 2024 May</p>
           <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
@@ -184,7 +184,7 @@ export default function Past() {
         </div>
 
         {/* Research Team */}
-        <div>
+        <div className="mb-8 md:mb-0">
           <h2 className="text-4xl mb-1">Research Team</h2>
           <p>2024 Jul - 2024 Sep</p>
           <p className="mt-2 text-xl border-b-2 border-gray-300 pb-4">
@@ -211,10 +211,10 @@ export default function Past() {
         </div>
 
         {/* Bookclub Activity */}
-        <div>
+        <div className="mb-8 md:mb-0">
           <h2 className="text-4xl mb-1">Bookclub Activity</h2>
           <p>2025 Feb - Ongoing </p>
-          <p className="mt-2 text-sm border-b-2 border-gray-300 pb-4">
+          <p className="mt-2 border-b-2 border-gray-300 pb-4">
             The Raw School Bookclub Activity kicks off its first 2025 program
             with a seven-week deep dive into Crypto Wars from February 22 to
             April 12, in collaboration with the book’s Chinese translator, Kurt
@@ -238,7 +238,7 @@ export default function Past() {
         <div>
           <h2 className="text-4xl mb-1">Product Development</h2>
           <p>2025 Feb - Ongoing </p>
-          <p className="mt-2 text-sm border-b-2 border-gray-300 pb-6">
+          <p className="mt-2 border-b-2 border-gray-300 pb-6">
             In 2025, Raw School will develop an official website to host the
             community’s learning outcomes and accumulated knowledge, featuring
             the following key functions:
