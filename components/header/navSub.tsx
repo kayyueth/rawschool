@@ -2,6 +2,7 @@
 
 import { Globe, Link2, LogOut, User, ScanFace } from "lucide-react";
 import { useWeb3 } from "@/lib/web3Context";
+import { useLanguage } from "@/lib/languageContext";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import ProfileView from "@/components/profile/ProfileView";
@@ -15,6 +16,7 @@ export default function NavSub() {
     connectWallet,
     disconnectWallet,
   } = useWeb3();
+  const { language, setLanguage, t } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
@@ -49,6 +51,11 @@ export default function NavSub() {
     setShowMenu(false);
   };
 
+  // Toggle language
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "zh" : "en");
+  };
+
   // 处理连接钱包
   const handleConnectWallet = useCallback(async () => {
     if (isButtonDisabled || isConnecting) return;
@@ -57,13 +64,13 @@ export default function NavSub() {
     try {
       await connectWallet();
       if (!error) {
-        toast.success("Wallet connected successfully");
+        toast.success(t("wallet.connected.success"));
       } else {
         toast.error(error);
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to connect wallet";
+        err instanceof Error ? err.message : t("failed.connect.wallet");
       toast.error(errorMessage);
     } finally {
       // Add a small delay before enabling the button again
@@ -71,26 +78,31 @@ export default function NavSub() {
         setIsButtonDisabled(false);
       }, 1000);
     }
-  }, [connectWallet, error, isButtonDisabled, isConnecting]);
+  }, [connectWallet, error, isButtonDisabled, isConnecting, t]);
 
   // 处理断开连接
   const handleDisconnect = async () => {
     try {
       await disconnectWallet();
-      toast.success("Disconnected successfully");
+      toast.success(t("disconnected.success"));
       setShowMenu(false);
     } catch (err) {
-      toast.error("Failed to disconnect");
+      toast.error(t("failed.disconnect"));
     }
   };
 
   return (
     <div className="flex justify-between items-center py-4 px-6 bg-black ml-20 mr-20">
       <div className="flex items-center">
-        <Globe className="text-[#FCFADE] w-6 h-6 mr-2" />
-        <span className="text-[#FCFADE] font-semibold text-lg">
-          English Language
-        </span>
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center hover:opacity-80 transition-opacity"
+        >
+          <Globe className="text-[#FCFADE] w-6 h-6 mr-2" />
+          <span className="text-[#FCFADE] font-semibold text-lg">
+            {t("english.language")}
+          </span>
+        </button>
       </div>
 
       <div className="relative">
@@ -101,7 +113,7 @@ export default function NavSub() {
             disabled={isConnecting || isButtonDisabled}
           >
             <Link2 className="w-6 h-6 mr-2 mt-1" />
-            {isConnecting ? "Connecting..." : "Connect Wallet"}
+            {isConnecting ? t("connecting") : t("connect.wallet")}
           </button>
         ) : (
           <div className="flex items-center">
@@ -125,14 +137,14 @@ export default function NavSub() {
                   className="flex items-center w-full px-4 py-2 text-[#FCFADE] hover:bg-gray-800 transition-colors"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Profile
+                  {t("profile")}
                 </button>
                 <button
                   onClick={handleDisconnect}
                   className="flex items-center w-full px-4 py-2 text-[#FCFADE] hover:bg-gray-800 transition-colors"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  Unconnect
+                  {t("unconnect")}
                 </button>
               </div>
             )}

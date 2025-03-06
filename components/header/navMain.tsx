@@ -1,18 +1,22 @@
 "use client";
 
+import { useLanguage } from "@/lib/languageContext";
+
 interface NavMainProps {
   onViewChange?: (view: "book" | "reviews" | "join" | "wiki") => void;
 }
 
 export default function NavMain({ onViewChange }: NavMainProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="flex ml-20 mr-20 mt-4 justify-between text-xl border-b-2 border-black">
       <div className="mb-4">
         <button onClick={() => onViewChange?.("book")} className="ml-8">
-          Bookclub Calender
+          {t("bookclub.calendar")}
         </button>
         <button onClick={() => onViewChange?.("wiki")} className="ml-8">
-          AmbiNet Project
+          {t("ambinet.project")}
         </button>
       </div>
 
@@ -21,7 +25,7 @@ export default function NavMain({ onViewChange }: NavMainProps) {
           onClick={() => onViewChange?.("join")}
           className="mr-8 hover:opacity-70 transition-opacity"
         >
-          Join Us
+          {t("join.us")}
         </button>
       </div>
     </div>

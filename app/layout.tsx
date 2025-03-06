@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Roboto } from "next/font/google";
 import { Web3Provider } from "@/lib/web3Context";
+import { LanguageProvider } from "@/lib/languageContext";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
 
@@ -24,15 +25,17 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${roboto.variable} antialiased`}>
         <Web3Provider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster position="top-center" />
-          </ThemeProvider>
+          <LanguageProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster position="top-center" />
+            </ThemeProvider>
+          </LanguageProvider>
         </Web3Provider>
       </body>
     </html>
