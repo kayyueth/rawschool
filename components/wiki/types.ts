@@ -1,17 +1,39 @@
+/**
+ * Wiki data types and interfaces
+ *
+ * Schema update (April 2023):
+ * Old schema:
+ * - 词条名称 -> "Wiki Name"
+ * - 内容 -> "Content"
+ * - "人工智能生成 AI-generated" -> "AI-generated"
+ * - Author -> "Editor"
+ * - 人工智能模型 -> "AI model"
+ * - book_title -> "Book Title / DOI / Website"
+ * - content_type -> "Content Type"
+ * - chapter -> "Chapter"
+ * - page -> "Page"
+ *
+ * Added new fields:
+ * - "Username": Username of the editor
+ *
+ * This update standardizes the field names and makes them more consistent
+ * with the English interface while maintaining backward compatibility.
+ */
+
 export interface WikiItem {
   id?: string;
-  词条名称: string; // Title
-  "人工智能生成 AI-generated": boolean; // AI Generated flag
+  "Wiki Name": string; // Title
+  "Content Type": string; // Content type: "One Line" or "Paragraph"
+  Chapter: string; // Chapter
+  Editor: string; // Editor name
+  "AI-generated": boolean; // AI Generated flag
   Date?: string; // Creation date
   "Last edited time"?: string; // Last edited timestamp
-  人工智能模型?: string | null; // AI Model used
-  内容: string; // Content
-  Author: string; // Author wallet address
-  wallet_address?: string | null; // Duplicate of Author, kept for backward compatibility
-  book_title: string; // Book title / DOI / Website
-  content_type: "one-line" | "paragraph"; // Content type
-  chapter: string; // Chapter
-  page: string; // Page number
+  "AI model"?: string | null; // AI Model used
+  Content: string; // Content
+  Page?: string | null; // Page number
+  "Book Title / DOI / Website"?: string | null; // Book title
+  Username?: string | null; // Username
 }
 
 /**
@@ -19,17 +41,18 @@ export interface WikiItem {
  */
 export interface WikiCard {
   id: string;
-  title: string; // 词条名称
-  content: string; // 内容
-  author: string; // Author
-  aiGenerated: boolean; // 人工智能生成 AI-generated
+  title: string; // Wiki Name
+  content: string; // Content
+  editor: string; // Editor
+  aiGenerated: boolean; // AI-generated
   createdDate: string; // Date
   lastEditedTime: string; // Last edited time
-  aiModel: string | null; // 人工智能模型
-  bookTitle: string; // Book title / DOI / Website
-  contentType: "one-line" | "paragraph"; // Content type
+  aiModel: string | null; // AI model
+  bookTitle: string | null; // Book Title / DOI / Website
+  contentType: string; // Content Type
   chapter: string; // Chapter
-  page: string; // Page number
+  page: string | null; // Page
+  username: string | null; // Username
 }
 
 /**
@@ -37,14 +60,15 @@ export interface WikiCard {
  */
 export interface ConceptCard {
   id: string;
-  title: string; // 词条名称
-  backContent: string; // 内容
-  author: string; // Author
-  aiGenerated: boolean; // 人工智能生成 AI-generated
-  bookTitle: string; // Book title / DOI / Website
-  contentType: "one-line" | "paragraph"; // Content type
+  title: string; // Wiki Name
+  backContent: string; // Content
+  editor: string; // Editor
+  aiGenerated: boolean; // AI-generated
+  bookTitle: string | null; // Book Title / DOI / Website
+  contentType: string; // Content Type
   chapter: string; // Chapter
-  page: string; // Page number
+  page: string | null; // Page
+  username: string | null; // Username
 }
 
 /**

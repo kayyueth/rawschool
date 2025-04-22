@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { BookclubReview, AmbientCard } from "@/types";
 import { v4 as uuidv4 } from "uuid";
+import { getUsernameByWalletAddress } from "@/lib/auth/userService";
 
 /**
  * 获取用户的所有 BookclubReview
@@ -218,7 +219,7 @@ export async function fetchUserAmbientCards(userId: string) {
   const { data, error } = await supabase
     .from("wiki")
     .select("*")
-    .eq("Author", userId)
+    .eq("Editor", userId)
     .order("Date", { ascending: false });
 
   if (error) throw error;
@@ -228,9 +229,9 @@ export async function fetchUserAmbientCards(userId: string) {
     id: item.id,
     user_id: userId,
     wallet_address: userId, // 使用 userId 作为钱包地址
-    title: item["词条名称"],
-    content: item["内容"],
-    created_at: item.Date || new Date().toISOString(),
+    title: item["Wiki Name"],
+    content: item["Content"],
+    created_at: item["Date"] || new Date().toISOString(),
     updated_at: item["Last edited time"] || new Date().toISOString(),
   })) as AmbientCard[];
 }
@@ -242,7 +243,7 @@ export async function fetchWalletAmbientCards(walletAddress: string) {
   const { data, error } = await supabase
     .from("wiki")
     .select("*")
-    .eq("Author", walletAddress)
+    .eq("Editor", walletAddress)
     .order("Date", { ascending: false });
 
   if (error) throw error;
@@ -252,9 +253,9 @@ export async function fetchWalletAmbientCards(walletAddress: string) {
     id: item.id,
     user_id: walletAddress, // 使用钱包地址作为用户ID
     wallet_address: walletAddress,
-    title: item["词条名称"],
-    content: item["内容"],
-    created_at: item.Date || new Date().toISOString(),
+    title: item["Wiki Name"],
+    content: item["Content"],
+    created_at: item["Date"] || new Date().toISOString(),
     updated_at: item["Last edited time"] || new Date().toISOString(),
   })) as AmbientCard[];
 }
@@ -269,20 +270,25 @@ export async function createAmbientCard(
   content: string
 ) {
   const now = new Date().toISOString();
+  const username = await getUsernameByWalletAddress(walletAddress).catch(
+    () => null
+  );
 
   const { data, error } = await supabase
     .from("wiki")
     .insert([
       {
         id: uuidv4(), // 生成唯一ID
-        词条名称: title,
-        内容: content,
-        "定义/解释/翻译校对": "用户创建",
-        "来源Soucre / 章节 Chapter": "用户内容",
-        Author: walletAddress, // 使用钱包地址作为作者
-        "人工智能生成 AI-generated": false,
+        "Wiki Name": title,
+        Content: content,
+        "Content Type": "One Line",
+        Chapter: "用户内容",
+        Editor: walletAddress, // 使用钱包地址作为编辑者
+        "AI-generated": false,
         Date: now,
         "Last edited time": now,
+        "Book Title / DOI / Website": "用户创建",
+        Username: username,
       },
     ])
     .select();
@@ -294,9 +300,9 @@ export async function createAmbientCard(
     id: data[0].id,
     user_id: userId,
     wallet_address: walletAddress,
-    title: data[0]["词条名称"],
-    content: data[0]["内容"],
-    created_at: data[0].Date,
+    title: data[0]["Wiki Name"],
+    content: data[0]["Content"],
+    created_at: data[0]["Date"],
     updated_at: data[0]["Last edited time"],
   } as AmbientCard;
 }
@@ -318,7 +324,7 @@ export async function updateAmbientCard(
   // 首先检查该条目是否属于当前用户
   const { data, error: fetchError } = await supabase
     .from("wiki")
-    .select("Author")
+    .select("Editor")
     .eq("id", cardId)
     .single();
 
@@ -331,7 +337,7 @@ export async function updateAmbientCard(
   }
 
   // 验证所有权
-  if (data.Author.toLowerCase() !== walletAddress.toLowerCase()) {
+  if (data.Editor.toLowerCase() !== walletAddress.toLowerCase()) {
     throw new Error("您没有权限更新此条目");
   }
 
@@ -340,8 +346,8 @@ export async function updateAmbientCard(
   const { data: updateData, error } = await supabase
     .from("wiki")
     .update({
-      词条名称: title,
-      内容: content,
+      "Wiki Name": title,
+      Content: content,
       "Last edited time": now,
     })
     .eq("id", cardId)
@@ -358,11 +364,11 @@ export async function updateAmbientCard(
 
   return {
     id: updatedCard.id,
-    user_id: updatedCard.Author,
-    wallet_address: updatedCard.Author,
-    title: updatedCard["词条名称"],
-    content: updatedCard["内容"],
-    created_at: updatedCard.Date,
+    user_id: updatedCard.Editor,
+    wallet_address: updatedCard.Editor,
+    title: updatedCard["Wiki Name"],
+    content: updatedCard["Content"],
+    created_at: updatedCard["Date"],
     updated_at: updatedCard["Last edited time"],
   } as AmbientCard;
 }
@@ -377,7 +383,7 @@ export async function deleteAmbientCard(cardId: string, walletAddress: string) {
   // 首先检查该条目是否属于当前用户
   const { data, error: fetchError } = await supabase
     .from("wiki")
-    .select("Author")
+    .select("Editor")
     .eq("id", cardId)
     .single();
 
@@ -390,7 +396,7 @@ export async function deleteAmbientCard(cardId: string, walletAddress: string) {
   }
 
   // 验证所有权
-  if (data.Author.toLowerCase() !== walletAddress.toLowerCase()) {
+  if (data.Editor.toLowerCase() !== walletAddress.toLowerCase()) {
     throw new Error("您没有权限删除此条目");
   }
 

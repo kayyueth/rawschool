@@ -8,20 +8,21 @@ import { supabase } from "@/lib/supabaseClient";
 export function wikiItemToCard(item: WikiItem): WikiCard {
   return {
     id: item.id || "",
-    title: item.词条名称,
-    content: item.内容,
-    author: item.Author,
+    title: item["Wiki Name"],
+    content: item["Content"],
+    editor: item["Editor"],
     aiGenerated:
-      typeof item["人工智能生成 AI-generated"] === "string"
-        ? item["人工智能生成 AI-generated"] === "true"
-        : !!item["人工智能生成 AI-generated"],
-    createdDate: item.Date || "",
+      typeof item["AI-generated"] === "string"
+        ? item["AI-generated"] === "true"
+        : !!item["AI-generated"],
+    createdDate: item["Date"] || "",
     lastEditedTime: item["Last edited time"] || "",
-    aiModel: item.人工智能模型 || null,
-    bookTitle: item.book_title,
-    contentType: item.content_type,
-    chapter: item.chapter,
-    page: item.page,
+    aiModel: item["AI model"] || null,
+    bookTitle: item["Book Title / DOI / Website"] || null,
+    contentType: item["Content Type"],
+    chapter: item["Chapter"],
+    page: item["Page"] || null,
+    username: item["Username"] || null,
   };
 }
 
@@ -31,17 +32,18 @@ export function wikiItemToCard(item: WikiItem): WikiCard {
 export function wikiItemToConceptCard(item: WikiItem): ConceptCard {
   return {
     id: item.id || "",
-    title: item.词条名称,
-    backContent: item.内容,
-    author: item.Author,
+    title: item["Wiki Name"],
+    backContent: item["Content"],
+    editor: item["Editor"],
     aiGenerated:
-      typeof item["人工智能生成 AI-generated"] === "string"
-        ? item["人工智能生成 AI-generated"] === "true"
-        : !!item["人工智能生成 AI-generated"],
-    bookTitle: item.book_title,
-    contentType: item.content_type,
-    chapter: item.chapter,
-    page: item.page,
+      typeof item["AI-generated"] === "string"
+        ? item["AI-generated"] === "true"
+        : !!item["AI-generated"],
+    bookTitle: item["Book Title / DOI / Website"] || null,
+    contentType: item["Content Type"],
+    chapter: item["Chapter"],
+    page: item["Page"] || null,
+    username: item["Username"] || null,
   };
 }
 
@@ -51,17 +53,18 @@ export function wikiItemToConceptCard(item: WikiItem): ConceptCard {
 export function wikiCardToItem(card: WikiCard): WikiItem {
   return {
     id: card.id,
-    词条名称: card.title,
-    "人工智能生成 AI-generated": card.aiGenerated,
-    内容: card.content,
-    Author: card.author,
-    人工智能模型: card.aiModel,
+    "Wiki Name": card.title,
+    "Content Type": card.contentType,
+    Chapter: card.chapter,
+    Editor: card.editor,
+    "AI-generated": card.aiGenerated,
     Date: card.createdDate,
     "Last edited time": card.lastEditedTime,
-    book_title: card.bookTitle,
-    content_type: card.contentType,
-    chapter: card.chapter,
-    page: card.page,
+    "AI model": card.aiModel,
+    Content: card.content,
+    Page: card.page,
+    "Book Title / DOI / Website": card.bookTitle,
+    Username: card.username,
   };
 }
 
@@ -89,7 +92,7 @@ export async function fetchWikiItemByTitle(
     const { data, error } = await supabase
       .from("wiki")
       .select("*")
-      .eq("词条名称", title)
+      .eq("Wiki Name", title)
       .single();
 
     if (error) {
@@ -112,7 +115,7 @@ export async function fetchAllWikiItems(): Promise<WikiItem[]> {
     const { data, error } = await supabase
       .from("wiki")
       .select("*")
-      .order("词条名称", { ascending: true });
+      .order("Wiki Name", { ascending: true });
 
     if (error) {
       console.error("Error fetching wiki items:", error);
@@ -134,8 +137,8 @@ export async function searchWikiItems(query: string): Promise<WikiItem[]> {
     const { data, error } = await supabase
       .from("wiki")
       .select("*")
-      .ilike("词条名称", `%${query}%`)
-      .order("词条名称", { ascending: true });
+      .ilike("Wiki Name", `%${query}%`)
+      .order("Wiki Name", { ascending: true });
 
     if (error) {
       console.error("Error searching wiki items:", error);
@@ -159,8 +162,8 @@ export async function searchWikiItemsByAuthor(
     const { data, error } = await supabase
       .from("wiki")
       .select("*")
-      .eq("Author", author)
-      .order("词条名称", { ascending: true });
+      .eq("Editor", author)
+      .order("Wiki Name", { ascending: true });
 
     if (error) {
       console.error("Error searching wiki items by author:", error);
@@ -184,7 +187,7 @@ export async function fetchRelatedWikiItems(
     const { data, error } = await supabase
       .from("wiki")
       .select("*")
-      .neq("词条名称", currentTitle)
+      .neq("Wiki Name", currentTitle)
       .limit(5);
 
     if (error) {

@@ -16,16 +16,18 @@ import { useWeb3 } from "@/lib/web3Context";
 
 interface WikiItem {
   id: string;
-  词条名称: string;
-  "定义/解释/翻译校对": string;
-  "来源Soucre / 章节 Chapter": string;
-  Property: string;
-  "人工智能生成 AI-generated": boolean;
+  "Wiki Name": string;
+  "Content Type": string;
+  Chapter: string;
+  Editor: string;
+  "AI-generated": boolean;
   Date: string;
   "Last edited time": string;
-  人工智能模型: string | null;
-  内容: string;
-  Author: string;
+  "AI model": string | null;
+  Content: string;
+  Page: string | null;
+  "Book Title / DOI / Website": string | null;
+  Username: string | null;
 }
 
 interface ConceptCard {
@@ -33,7 +35,7 @@ interface ConceptCard {
   title: string;
   frontContent: string;
   backContent: string;
-  author: string;
+  editor: string;
   source: string;
   type: string;
   aiGenerated: boolean;
@@ -120,7 +122,7 @@ const FlipCard = ({
               {card.backContent}
             </p>
             <div className="mt-4 text-sm">
-              <p>作者: {card.author}</p>
+              <p>作者: {card.editor}</p>
               <p>来源: {card.source}</p>
               <button
                 className="mt-2 bg-white text-black px-4 py-1 rounded hover:bg-white/70 transition-colors"
@@ -193,7 +195,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
     const filtered = cards.filter(
       (card) =>
         card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        card.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        card.editor.toLowerCase().includes(searchQuery.toLowerCase()) ||
         card.frontContent.toLowerCase().includes(searchQuery.toLowerCase()) ||
         card.source.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -241,7 +243,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
 
   const handleAuthorSearch = (authorName: string) => {
     const filtered = cards.filter((card) =>
-      card.author.toLowerCase().includes(authorName.toLowerCase())
+      card.editor.toLowerCase().includes(authorName.toLowerCase())
     );
     setFilteredCards(filtered);
 
@@ -284,42 +286,26 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
         if (data) {
           const formattedCards: ConceptCard[] = data.map((item: WikiItem) => ({
             id: item.id,
-            title: item["词条名称"],
-            frontContent: item["内容"],
-            backContent: item["内容"],
-            author:
-              item["Author"] ||
-              (item["人工智能生成 AI-generated"] && item["人工智能模型"]
-                ? item["人工智能模型"]
-                : item["人工智能生成 AI-generated"]
-                ? "AI生成"
-                : "人工编辑"),
-            source: item["来源Soucre / 章节 Chapter"],
-            type: item["定义/解释/翻译校对"],
-            aiGenerated: item["人工智能生成 AI-generated"],
+            title: item["Wiki Name"],
+            frontContent: item["Content"],
+            backContent: item["Content"],
+            editor: item["Editor"] || "人工编辑",
+            source: item["Chapter"],
+            type: item["Content Type"],
+            aiGenerated: item["AI-generated"],
           }));
 
           setCards(formattedCards);
           setFilteredCards(formattedCards);
 
           const allConcepts = [
-            ...new Set(data.map((item) => item["词条名称"])),
+            ...new Set(data.map((item) => item["Wiki Name"])),
           ];
           setConcepts(allConcepts);
 
           const allAuthors = [
             ...new Set(
-              data
-                .map(
-                  (item) =>
-                    item["Author"] ||
-                    (item["人工智能生成 AI-generated"] && item["人工智能模型"]
-                      ? item["人工智能模型"]
-                      : item["人工智能生成 AI-generated"]
-                      ? "AI生成"
-                      : "人工编辑")
-                )
-                .filter(Boolean)
+              data.map((item) => item["Editor"] || "人工编辑").filter(Boolean)
             ),
           ];
           setAuthors(allAuthors as string[]);
@@ -515,13 +501,13 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
                       // 转换数据格式
                       const formattedCards = data.map((item) => ({
                         id: item.id,
-                        title: item.词条名称,
-                        frontContent: item["定义/解释/翻译校对"],
-                        backContent: item.内容,
-                        author: item.Author,
-                        source: item["来源Soucre / 章节 Chapter"],
-                        type: item.Property || "concept",
-                        aiGenerated: item["人工智能生成 AI-generated"],
+                        title: item["Wiki Name"],
+                        frontContent: item["Content Type"],
+                        backContent: item["Content"],
+                        editor: item["Editor"] || "人工编辑",
+                        source: item["Chapter"],
+                        type: item["Content Type"],
+                        aiGenerated: item["AI-generated"],
                       }));
 
                       setCards(formattedCards);

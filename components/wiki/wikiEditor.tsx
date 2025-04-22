@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useWeb3 } from "@/lib/web3Context";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Plus, Edit } from "lucide-react";
+import { getUsernameByWalletAddress } from "@/lib/auth/userService";
+import { WikiItem } from "./types";
+import { toast } from "react-hot-toast";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -15,11 +26,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil } from "lucide-react";
-import PermissionControl from "@/components/auth/PermissionControl";
-import { getUsernameByWalletAddress } from "@/lib/auth/userService";
-import { v4 as uuidv4 } from "uuid";
-import { WikiItem } from "./types";
+
+interface FormValues {
+  id: string;
+  title: string;
+  content: string;
+  contentType: string;
+  chapter: string;
+  bookTitle: string;
+  page: string;
+  aiGenerated: boolean;
+  aiModel: string;
+}
 
 interface WikiEditorProps {
   wikiItem?: WikiItem | null;
@@ -34,43 +52,42 @@ export default function WikiEditor({
   onSave,
   onCancel,
 }: WikiEditorProps) {
-  const [formData, setFormData] = useState<WikiItem>({
-    词条名称: "",
-    "人工智能生成 AI-generated": false,
-    内容: "",
-    Author: "",
-    人工智能模型: null,
-    book_title: "",
-    content_type: "one-line",
-    chapter: "",
-    page: "",
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [authorUsername, setAuthorUsername] = useState<string | null>(null);
+  const defaultFormValues: FormValues = {
+    id: wikiItem?.id || "",
+    title: wikiItem?.["Wiki Name"] || "",
+    content: wikiItem?.["Content"] || "",
+    contentType: wikiItem?.["Content Type"] || "One Line",
+    chapter: wikiItem?.["Chapter"] || "",
+    bookTitle: wikiItem?.["Book Title / DOI / Website"] || "",
+    page: wikiItem?.["Page"] || "",
+    aiGenerated: wikiItem?.["AI-generated"] || false,
+    aiModel: wikiItem?.["AI model"] || "",
+  };
 
-  const { isAuthenticated, account } = useWeb3();
+  const [formValues, setFormValues] = useState<FormValues>(defaultFormValues);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authorUsername, setAuthorUsername] = useState<string | null>(null);
+  const { account } = useWeb3();
 
   useEffect(() => {
-    if (wikiItem && isEdit) {
-      setFormData(wikiItem);
+    if (wikiItem) {
+      setFormValues({
+        id: wikiItem.id || "",
+        title: wikiItem["Wiki Name"] || "",
+        content: wikiItem["Content"] || "",
+        contentType: wikiItem["Content Type"] || "One Line",
+        chapter: wikiItem["Chapter"] || "",
+        bookTitle: wikiItem["Book Title / DOI / Website"] || "",
+        page: wikiItem["Page"] || "",
+        aiGenerated: wikiItem["AI-generated"] || false,
+        aiModel: wikiItem["AI model"] || "",
+      });
 
-      if (wikiItem.Author) {
-        fetchAuthorUsername(wikiItem.Author);
+      if (wikiItem["Editor"]) {
+        fetchAuthorUsername(wikiItem["Editor"]);
       }
     }
-  }, [wikiItem, isEdit]);
-
-  useEffect(() => {
-    if (account) {
-      setFormData((prev) => ({
-        ...prev,
-        Author: account,
-      }));
-      fetchAuthorUsername(account);
-    }
-  }, [account]);
+  }, [wikiItem]);
 
   const fetchAuthorUsername = async (walletAddress: string) => {
     try {
@@ -87,300 +104,247 @@ export default function WikiEditor({
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormValues((prev) => ({
       ...prev,
-      [name]:
-        name === "content_type" ? (value as "one-line" | "paragraph") : value,
+      [name]: value,
     }));
   };
 
   const handleCheckboxChange = (checked: boolean) => {
-    setFormData((prev) => ({
+    setFormValues((prev) => ({
       ...prev,
-      "人工智能生成 AI-generated": checked,
+      aiGenerated: checked,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!isAuthenticated || !account) {
-      setError("请先连接钱包并登录");
+    if (!account) {
+      toast.error("Please connect your wallet");
       return;
     }
-
-    // 验证表单数据
-    if (!formData.词条名称.trim()) {
-      setError("词条名称不能为空");
-      return;
-    }
-
-    if (!formData.book_title.trim()) {
-      setError("Book title / DOI / Website cannot be empty");
-      return;
-    }
-
-    if (!formData.chapter.trim()) {
-      setError("Chapter cannot be empty");
-      return;
-    }
-
-    if (!formData.page.trim()) {
-      setError("Page cannot be empty");
-      return;
-    }
-
-    if (!formData.内容.trim()) {
-      setError("内容不能为空");
-      return;
-    }
-
-    // 确保使用钱包地址作为作者
-    const authorAddress = account;
-
-    setIsLoading(true);
-    setError(null);
 
     try {
-      const now = new Date().toISOString();
+      setIsSubmitting(true);
 
-      // 确保数据格式与数据库匹配
-      const formattedData = {
-        id: formData.id || uuidv4(),
-        词条名称: formData.词条名称,
-        Author: authorAddress,
-        "人工智能生成 AI-generated": formData["人工智能生成 AI-generated"]
-          ? "true"
-          : "false",
-        内容: formData.内容,
-        人工智能模型: formData.人工智能模型,
-        book_title: formData.book_title,
-        content_type: formData.content_type,
-        chapter: formData.chapter,
-        page: formData.page,
+      const now = new Date().toISOString();
+      const username = await getUsernameByWalletAddress(account);
+
+      const wikiData: Record<string, any> = {
+        ...(formValues.id ? { id: formValues.id } : {}),
+        "Wiki Name": formValues.title,
+        Content: formValues.content,
+        "Content Type": formValues.contentType,
+        Chapter: formValues.chapter,
+        Editor: account,
+        "AI-generated": formValues.aiGenerated,
+        "Book Title / DOI / Website": formValues.bookTitle || null,
+        Page: formValues.page || null,
+        Username: username,
+        "Last edited time": now,
       };
 
-      if (isEdit && wikiItem?.id) {
-        // 检查所有权
-        if (
-          wikiItem.wallet_address &&
-          wikiItem.wallet_address.toLowerCase() !== account.toLowerCase()
-        ) {
-          setError("您没有权限编辑此条目");
-          setIsLoading(false);
-          return;
-        }
-
-        // 更新现有条目
-        const { error } = await supabase
-          .from("wiki")
-          .update({
-            ...formattedData,
-            "Last edited time": now,
-          })
-          .eq("id", wikiItem.id);
-
-        if (error) {
-          console.error("Supabase 更新错误:", error);
-          throw new Error(`更新失败: ${error.message}`);
-        }
-      } else {
-        const { error } = await supabase.from("wiki").insert([
-          {
-            ...formattedData,
-            Date: now,
-            "Last edited time": now,
-          },
-        ]);
-
-        if (error) {
-          console.error("Supabase 插入错误:", error);
-          throw new Error(`创建失败: ${error.message}`);
-        }
+      if (!isEdit) {
+        wikiData["Date"] = now;
       }
 
-      setIsDialogOpen(false);
+      if (formValues.aiGenerated && formValues.aiModel) {
+        wikiData["AI model"] = formValues.aiModel;
+      }
+
+      let { data, error: supabaseError } = isEdit
+        ? await supabase
+            .from("wiki")
+            .update(wikiData)
+            .eq("id", formValues.id)
+            .select()
+        : await supabase.from("wiki").insert([wikiData]).select();
+
+      if (supabaseError) {
+        console.error("Error saving wiki item:", supabaseError);
+        toast.error(
+          `Failed to ${isEdit ? "update" : "create"} wiki item: ${
+            supabaseError.message
+          }`
+        );
+        return;
+      }
+
+      toast.success(
+        `Wiki item ${isEdit ? "updated" : "created"} successfully!`
+      );
       if (onSave) onSave();
-    } catch (err) {
-      // 详细记录错误信息
-      if (err instanceof Error) {
-        console.error("Save wiki entry error:", {
-          message: err.message,
-          stack: err.stack,
-          name: err.name,
-        });
-      } else {
-        console.error("Save wiki entry error:", err);
-      }
-
-      // 设置用户友好的错误消息
-      if (err instanceof Error) {
-        setError(err.message);
-      } else if (typeof err === "object" && err !== null) {
-        setError(JSON.stringify(err));
-      } else {
-        setError("Save failed, please try again later");
-      }
+    } catch (error) {
+      console.error("Error saving wiki item:", error);
+      toast.error(
+        `Failed to ${isEdit ? "update" : "create"} wiki item: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const triggerButton = isEdit ? (
-    <Button variant="outline" size="icon" className="h-8 w-8">
-      <Pencil className="h-4 w-4" />
-    </Button>
-  ) : (
-    <Button variant="outline" className="flex items-center gap-2 bg-[#FCFADE]">
-      <Plus className="h-4 w-4" /> Add New Entry
-    </Button>
-  );
-
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <PermissionControl
-        requireAuth={true}
-        requireOwnership={isEdit}
-        ownerAddress={wikiItem?.wallet_address}
-      >
-        <DialogTrigger asChild>{triggerButton}</DialogTrigger>
-      </PermissionControl>
+    <div
+      className="text-black rounded-lg p-10 w-full mx-auto"
+      style={{ position: "relative" }}
+    >
+      <h2 className="text-2xl font-bold mb-6">
+        {isEdit ? "Edit Wiki Entry" : "Create Wiki Entry"}
+      </h2>
 
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-12">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit Wiki Entry" : "Add New Wiki Entry"}
-          </DialogTitle>
-        </DialogHeader>
+      <form onSubmit={handleSubmit}>
+        <div className="space-y-6 " style={{ maxHeight: "calc(80vh - 100px)" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="bookTitle">Book Title / DOI / Website</Label>
+              <Input
+                id="bookTitle"
+                name="bookTitle"
+                value={formValues.bookTitle}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="book_title">Book Title / DOI / Website</Label>
-            <Input
-              id="book_title"
-              name="book_title"
-              value={formData.book_title}
-              onChange={handleChange}
-              required
-            />
+            <div className="space-y-2">
+              <Label htmlFor="title">Wiki Title</Label>
+              <Input
+                id="title"
+                name="title"
+                value={formValues.title}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="词条名称">Wiki Name</Label>
-            <Input
-              id="词条名称"
-              name="词条名称"
-              value={formData.词条名称}
-              onChange={handleChange}
-              required
-            />
-          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="contentType">Content Type</Label>
+              <Select
+                value={formValues.contentType}
+                onValueChange={(value) =>
+                  setFormValues((prev) => ({
+                    ...prev,
+                    contentType: value as string,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="One Line">One Line</SelectItem>
+                  <SelectItem value="Paragraph">Paragraph</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="content_type">Content Type</Label>
-            <select
-              id="content_type"
-              name="content_type"
-              value={formData.content_type}
-              onChange={handleChange}
-              className="w-full rounded-md border border-input bg-background px-3 py-2"
-              required
-            >
-              <option value="one-line">One Line</option>
-              <option value="paragraph">Paragraph</option>
-            </select>
-          </div>
-
-          <div className="flex gap-2 justify-between">
-            <div className="space-y-2 w-1/2">
+            <div className="space-y-2">
               <Label htmlFor="chapter">Chapter</Label>
               <Input
                 id="chapter"
                 name="chapter"
-                value={formData.chapter}
+                value={formValues.chapter}
                 onChange={handleChange}
                 required
               />
             </div>
-            <div className="space-y-2 w-1/2">
+
+            <div className="space-y-2">
               <Label htmlFor="page">Page</Label>
               <Input
                 id="page"
                 name="page"
-                type="number"
-                value={formData.page}
+                type="text"
+                value={formValues.page}
                 onChange={handleChange}
-                required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="内容">Content</Label>
+            <Label htmlFor="content">Content</Label>
             <Textarea
-              id="内容"
-              name="内容"
-              value={formData.内容}
+              id="content"
+              name="content"
+              value={formValues.content}
               onChange={handleChange}
               className="min-h-[200px]"
               required
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="人工智能生成 AI-generated"
-              checked={formData["人工智能生成 AI-generated"]}
-              onCheckedChange={handleCheckboxChange}
-            />
-            <Label htmlFor="人工智能生成 AI-generated">AI-generated</Label>
-          </div>
-
-          {formData["人工智能生成 AI-generated"] && (
-            <div className="space-y-2">
-              <Label htmlFor="人工智能模型">AI model</Label>
-              <Input
-                id="人工智能模型"
-                name="人工智能模型"
-                value={formData.人工智能模型 || ""}
-                onChange={handleChange}
-              />
+          <div className="flex justify-between">
+            <div className="">
+              <div className="space-x-2">
+                <Checkbox
+                  id="aiGenerated"
+                  checked={formValues.aiGenerated}
+                  onCheckedChange={handleCheckboxChange}
+                />
+                <Label htmlFor="aiGenerated">AI-generated</Label>
+              </div>
+              <div className="flex space-x-4 mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (onCancel) onCancel();
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Saving..." : "Save"}
+                </Button>
+              </div>
             </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="Author">Author</Label>
-            <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-              {authorUsername || account || "Please connect your wallet"}
-            </p>
+            {formValues.aiGenerated && (
+              <div className="space-y-1 mt-2 grid">
+                <Label htmlFor="aiModel">AI model</Label>
+                <Input
+                  id="aiModel"
+                  name="aiModel"
+                  value={formValues.aiModel}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
           </div>
-
-          {error && <div className="text-red-500 text-sm">{error}</div>}
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setIsDialogOpen(false);
-                if (onCancel) onCancel();
-              }}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </form>
+    </div>
   );
 }
 
 export function CreateWikiButton({ onSave }: { onSave?: () => void }) {
-  return <WikiEditor onSave={onSave} />;
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button className="flex items-center gap-2">
+          <Plus size={16} /> Create Wiki Entry
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] p-0 overflow-hidden">
+        <div className="p-0 overflow-visible">
+          <WikiEditor
+            onSave={() => {
+              setIsOpen(false);
+              if (onSave) onSave();
+            }}
+            onCancel={() => setIsOpen(false)}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function EditWikiButton({
@@ -390,7 +354,33 @@ export function EditWikiButton({
   wikiItem: WikiItem;
   onSave?: () => void;
 }) {
-  return <WikiEditor wikiItem={wikiItem} isEdit={true} onSave={onSave} />;
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Edit size={14} /> Edit
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6">
+          <DialogTitle>Edit Wiki Entry</DialogTitle>
+        </DialogHeader>
+        <div className="p-0 overflow-visible">
+          <WikiEditor
+            wikiItem={wikiItem}
+            isEdit={true}
+            onSave={() => {
+              setIsOpen(false);
+              if (onSave) onSave();
+            }}
+            onCancel={() => setIsOpen(false)}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function WikiEditorContent({
@@ -401,93 +391,8 @@ export function WikiEditorContent({
   onSave?: () => void;
 }) {
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (onSave) onSave();
-      }}
-      className="space-y-4 mt-4"
-    >
-      <div className="space-y-2">
-        <Label htmlFor="book_title">Book Title / DOI / Website</Label>
-        <Input
-          id="book_title"
-          name="book_title"
-          defaultValue={wikiItem.book_title}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="词条名称">Wiki Name</Label>
-        <Input
-          id="词条名称"
-          name="词条名称"
-          defaultValue={wikiItem.词条名称}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="content_type">Content Type</Label>
-        <select
-          id="content_type"
-          name="content_type"
-          defaultValue={wikiItem.content_type}
-          className="w-full rounded-md border border-input bg-background px-3 py-2"
-          required
-        >
-          <option value="one-line">One Line</option>
-          <option value="paragraph">Paragraph</option>
-        </select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="chapter">Chapter</Label>
-        <Input
-          id="chapter"
-          name="chapter"
-          defaultValue={wikiItem.chapter}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="page">Page</Label>
-        <Input
-          id="page"
-          name="page"
-          type="number"
-          defaultValue={wikiItem.page}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="内容">Content</Label>
-        <Textarea
-          id="内容"
-          name="内容"
-          defaultValue={wikiItem.内容}
-          className="min-h-[200px]"
-          required
-        />
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="人工智能生成 AI-generated"
-          name="人工智能生成 AI-generated"
-          defaultChecked={wikiItem["人工智能生成 AI-generated"]}
-        />
-        <Label htmlFor="人工智能生成 AI-generated">AI Generated</Label>
-      </div>
-
-      <div className="flex justify-end space-x-2">
-        <Button type="submit" className="bg-black text-white hover:bg-black/70">
-          Save Changes
-        </Button>
-      </div>
-    </form>
+    <div className="p-4">
+      <WikiEditor wikiItem={wikiItem} isEdit={!!wikiItem.id} onSave={onSave} />
+    </div>
   );
 }

@@ -86,192 +86,195 @@ export default function WikiCardComponent({
 
   useEffect(() => {
     if (!title) return;
+    fetchWikiItem(title);
+  }, [title]);
 
-    async function fetchWikiItem() {
-      try {
-        setIsLoading(true);
+  async function fetchWikiItem(itemTitle: string) {
+    try {
+      setIsLoading(true);
 
-        const { data, error } = await supabase
-          .from("wiki")
-          .select("*")
-          .eq("词条名称", title)
-          .single();
+      const { data, error } = await supabase
+        .from("wiki")
+        .select("*")
+        .eq("Wiki Name", itemTitle)
+        .single();
 
-        if (error) {
-          console.error("Error fetching wiki item:", error);
-          return;
+      if (error) {
+        console.error("Error fetching wiki item:", error);
+        return;
+      }
+
+      if (data) {
+        const formattedItem: WikiCard = {
+          id: data.id,
+          title: data["Wiki Name"],
+          content: data["Content"],
+          editor: data["Editor"],
+          aiGenerated: data["AI-generated"],
+          createdDate: data["Date"] || "",
+          lastEditedTime: data["Last edited time"] || "",
+          aiModel: data["AI model"] || null,
+          bookTitle: data["Book Title / DOI / Website"] || null,
+          contentType: data["Content Type"],
+          chapter: data["Chapter"],
+          page: data["Page"] || null,
+          username: data["Username"] || null,
+        };
+
+        setWikiData(formattedItem);
+
+        // Fetch editor's username
+        if (data["Editor"]) {
+          fetchAuthorUsername(data["Editor"]);
         }
 
-        if (data) {
-          const formattedItem: WikiCard = {
-            id: data.id,
-            title: data["词条名称"],
-            content: data["内容"],
-            definition: data["定义/解释/翻译校对"],
-            source: data["来源Soucre / 章节 Chapter"],
-            author: data["Author"],
-            aiGenerated: data["人工智能生成 AI-generated"],
-            createdDate: data.Date,
-            lastEditedTime: data["Last edited time"],
-            aiModel: data["人工智能模型"],
-          };
+        const chapterInfo = data["Chapter"] || "";
+        let bookName = data["Book Title / DOI / Website"] || chapterInfo;
+        let editorName = data["Editor"] || "";
 
-          setWikiData(formattedItem);
-
-          // 获取作者的用户名
-          if (data["Author"]) {
-            fetchAuthorUsername(data["Author"]);
-          }
-
-          const sourceInfo = data["来源Soucre / 章节 Chapter"] || "";
-          let bookName = sourceInfo;
-          let authorName = "";
-
-          const authorMatch = sourceInfo.match(/^([^：:]+)[：:]/);
-          if (authorMatch) {
-            authorName = authorMatch[1].trim();
-            bookName = sourceInfo.substring(authorMatch[0].length).trim();
-          }
-
+        try {
+          let relatedByBook = [];
           try {
-            let relatedBySource = [];
-            try {
-              const { data: sourceData, error: relatedSourceError } =
-                await supabase
-                  .from("wiki")
-                  .select("*")
-                  .filter(
-                    '"来源Soucre / 章节 Chapter"',
-                    "eq",
-                    data["来源Soucre / 章节 Chapter"]
-                  )
-                  .neq("id", data.id)
-                  .limit(5);
+            const { data: bookData, error: relatedBookError } = await supabase
+              .from("wiki")
+              .select("*")
+              .eq(
+                "Book Title / DOI / Website",
+                data["Book Title / DOI / Website"]
+              )
+              .neq("id", data.id)
+              .limit(5);
 
-              if (relatedSourceError) {
-                console.error(
-                  "Error fetching related items by source:",
-                  relatedSourceError.message ||
-                    JSON.stringify(relatedSourceError) ||
-                    "Unknown error"
-                );
-              } else {
-                relatedBySource = sourceData || [];
-              }
-            } catch (error) {
-              console.error("Error fetching related items by source:", error);
-            }
-
-            let relatedByAuthor = [];
-            if (authorName) {
-              try {
-                const { data: authorData, error: relatedAuthorError } =
-                  await supabase
-                    .from("wiki")
-                    .select("*")
-                    .or(
-                      `内容.ilike.%${authorName}%,词条名称.ilike.%${authorName}%`
-                    )
-                    .neq("id", data.id)
-                    .limit(5);
-
-                if (relatedAuthorError) {
-                  console.error(
-                    "Error fetching related items by author:",
-                    relatedAuthorError.message ||
-                      JSON.stringify(relatedAuthorError) ||
-                      "Unknown error"
-                  );
-                } else {
-                  relatedByAuthor = authorData || [];
-                }
-              } catch (error) {
-                console.error("Error fetching related items by author:", error);
-              }
-            }
-
-            let relatedByAuthor2 = [];
-            try {
-              const { data: authorData2, error: relatedAuthorError2 } =
-                await supabase
-                  .from("wiki")
-                  .select("*")
-                  .eq("Author", data["Author"])
-                  .neq("id", data.id)
-                  .limit(5);
-
-              if (relatedAuthorError2) {
-                console.error(
-                  "Error fetching related items by author:",
-                  relatedAuthorError2.message ||
-                    JSON.stringify(relatedAuthorError2) ||
-                    "Unknown error"
-                );
-              } else {
-                relatedByAuthor2 = authorData2 || [];
-              }
-            } catch (error) {
-              console.error("Error fetching related items by author:", error);
-            }
-
-            const combinedRelated = [
-              ...(relatedBySource || []),
-              ...(relatedByAuthor || []),
-              ...(relatedByAuthor2 || []),
-            ];
-            const uniqueRelated = Array.from(
-              new Set(combinedRelated.map((item) => item.id))
-            )
-              .map((id) => combinedRelated.find((item) => item.id === id))
-              .filter(Boolean)
-              .slice(0, 10);
-
-            if (uniqueRelated.length > 0) {
-              const formattedRelated: WikiCard[] = uniqueRelated.map(
-                (item: any) => ({
-                  id: item.id,
-                  title: item["词条名称"],
-                  content: item["内容"],
-                  definition: item["定义/解释/翻译校对"],
-                  source: item["来源Soucre / 章节 Chapter"],
-                  author: item["Author"],
-                  aiGenerated: item["人工智能生成 AI-generated"],
-                  createdDate: item.Date,
-                  lastEditedTime: item["Last edited time"],
-                  aiModel: item["人工智能模型"],
-                })
+            if (relatedBookError) {
+              console.error(
+                "Error fetching related items by book:",
+                relatedBookError.message ||
+                  JSON.stringify(relatedBookError) ||
+                  "Unknown error"
               );
-
-              setRelatedItems(formattedRelated);
+            } else {
+              relatedByBook = bookData || [];
             }
           } catch (error) {
-            console.error("Error fetching related items:", error);
+            console.error("Error fetching related items by book:", error);
           }
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
 
-    fetchWikiItem();
-  }, [title]);
+          let relatedByChapter = [];
+          try {
+            const { data: chapterData, error: relatedChapterError } =
+              await supabase
+                .from("wiki")
+                .select("*")
+                .eq("Chapter", data["Chapter"])
+                .neq("id", data.id)
+                .limit(5);
+
+            if (relatedChapterError) {
+              console.error(
+                "Error fetching related items by chapter:",
+                relatedChapterError.message ||
+                  JSON.stringify(relatedChapterError) ||
+                  "Unknown error"
+              );
+            } else {
+              relatedByChapter = chapterData || [];
+            }
+          } catch (error) {
+            console.error("Error fetching related items by chapter:", error);
+          }
+
+          let relatedByEditor = [];
+          try {
+            const { data: editorData, error: relatedEditorError } =
+              await supabase
+                .from("wiki")
+                .select("*")
+                .eq("Editor", data["Editor"])
+                .neq("id", data.id)
+                .limit(5);
+
+            if (relatedEditorError) {
+              console.error(
+                "Error fetching related items by editor:",
+                relatedEditorError.message ||
+                  JSON.stringify(relatedEditorError) ||
+                  "Unknown error"
+              );
+            } else {
+              relatedByEditor = editorData || [];
+            }
+          } catch (error) {
+            console.error("Error fetching related items by editor:", error);
+          }
+
+          const combinedRelated = [
+            ...(relatedByBook || []),
+            ...(relatedByChapter || []),
+            ...(relatedByEditor || []),
+          ];
+          const uniqueRelated = Array.from(
+            new Set(combinedRelated.map((item) => item.id))
+          )
+            .map((id) => combinedRelated.find((item) => item.id === id))
+            .filter(Boolean)
+            .slice(0, 10);
+
+          if (uniqueRelated.length > 0) {
+            const formattedRelated: WikiCard[] = uniqueRelated.map(
+              (item: any) => ({
+                id: item.id,
+                title: item["Wiki Name"],
+                content: item["Content"],
+                editor: item["Editor"],
+                aiGenerated: item["AI-generated"],
+                createdDate: item["Date"] || "",
+                lastEditedTime: item["Last edited time"] || "",
+                aiModel: item["AI model"] || null,
+                bookTitle: item["Book Title / DOI / Website"] || null,
+                contentType: item["Content Type"],
+                chapter: item["Chapter"],
+                page: item["Page"] || null,
+                username: item["Username"] || null,
+              })
+            );
+            setRelatedItems(formattedRelated);
+          }
+        } catch (error) {
+          console.error("Error processing related items:", error);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching wiki item:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const fetchAuthorUsername = async (walletAddress: string) => {
     try {
       const username = await getUsernameByWalletAddress(walletAddress);
       setAuthorUsername(username);
     } catch (error) {
-      console.error("Error fetching author username:", error);
+      console.error("Failed to fetch author username:", error);
     }
   };
 
   const getAuthorDisplayName = () => {
+    if (!wikiData) return "";
+
     if (authorUsername) {
       return authorUsername;
     }
-    return truncateAddress(wikiData?.author || "");
+
+    if (wikiData.username) {
+      return wikiData.username;
+    }
+
+    if (wikiData.aiGenerated && wikiData.aiModel) {
+      return `AI (${wikiData.aiModel})`;
+    }
+
+    return wikiData.editor || (wikiData.aiGenerated ? "AI生成" : "未知编辑");
   };
 
   const formattedDate = wikiData?.createdDate
@@ -283,22 +286,29 @@ export default function WikiCardComponent({
 
   const isAuthor =
     account &&
-    wikiData?.author &&
-    account.toLowerCase() === wikiData.author.toLowerCase();
+    wikiData?.editor &&
+    account.toLowerCase() === wikiData.editor.toLowerCase();
 
   const handleDeleteEntry = async () => {
-    if (!wikiData || !account) return;
+    if (!wikiData?.id) return;
 
     try {
       setIsDeleting(true);
-      await deleteAmbientCard(wikiData.id, account);
-      toast.success("Entry deleted successfully");
-      onBackToList();
+      const { error } = await supabase
+        .from("wiki")
+        .delete()
+        .eq("id", wikiData.id);
+
+      if (error) {
+        console.error("Error deleting wiki entry:", error);
+        toast.error("删除条目失败");
+      } else {
+        toast.success("条目已成功删除");
+        onBackToList();
+      }
     } catch (error) {
-      console.error("Error deleting entry:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to delete entry"
-      );
+      console.error("Error deleting wiki entry:", error);
+      toast.error("删除条目失败");
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -307,28 +317,26 @@ export default function WikiCardComponent({
 
   const handleEditComplete = () => {
     setShowEditDialog(false);
-    if (wikiData) {
-      setIsLoading(true);
-      fetchWikiItem(wikiData.title);
-    }
-    toast.success("Entry updated successfully");
+    fetchWikiItem(title);
+    toast.success("条目已成功更新");
   };
 
   const convertToWikiItem = () => {
     if (!wikiData) return null;
-
     return {
       id: wikiData.id,
-      词条名称: wikiData.title,
-      "定义/解释/翻译校对": wikiData.definition,
-      "来源Soucre / 章节 Chapter": wikiData.source,
-      "人工智能生成 AI-generated": wikiData.aiGenerated,
+      "Wiki Name": wikiData.title,
+      Content: wikiData.content,
+      Editor: wikiData.editor,
+      "AI-generated": wikiData.aiGenerated,
       Date: wikiData.createdDate,
       "Last edited time": wikiData.lastEditedTime,
-      人工智能模型: wikiData.aiModel,
-      内容: wikiData.content,
-      Author: wikiData.author,
-      wallet_address: wikiData.author,
+      "AI model": wikiData.aiModel,
+      "Book Title / DOI / Website": wikiData.bookTitle,
+      "Content Type": wikiData.contentType,
+      Chapter: wikiData.chapter,
+      Page: wikiData.page,
+      Username: wikiData.username,
     };
   };
 
@@ -434,21 +442,7 @@ export default function WikiCardComponent({
 
             <div className="md:grid md:grid-cols-2 gap-8 md:mb-8 mb-4">
               <div className="col-span-2 md:col-span-1">
-                <p className="text-black/60 mb-1 md:text-sm text-xs">
-                  Definition
-                </p>
-                <p className="md:text-xl text-xs">{wikiData.definition}</p>
-              </div>
-
-              <div className="col-span-2 md:col-span-1">
-                <p className="text-black/60 mb-1 md:text-sm text-xs">
-                  Source/Chapter
-                </p>
-                <p className="md:text-xl text-xs">{wikiData.source}</p>
-              </div>
-
-              <div className="col-span-2 md:col-span-1">
-                <p className="text-black/60 mb-1 md:text-sm text-xs">Author</p>
+                <p className="text-black/60 mb-1 md:text-sm text-xs">Editor</p>
                 <p className="md:text-xl text-xs">{getAuthorDisplayName()}</p>
               </div>
 
@@ -523,167 +517,5 @@ export default function WikiCardComponent({
     </div>
   );
 
-  async function fetchWikiItem(itemTitle: string) {
-    try {
-      setIsLoading(true);
-
-      const { data, error } = await supabase
-        .from("wiki")
-        .select("*")
-        .eq("词条名称", itemTitle)
-        .single();
-
-      if (error) {
-        console.error("Error fetching wiki item:", error);
-        return;
-      }
-
-      if (data) {
-        const formattedItem: WikiCard = {
-          id: data.id,
-          title: data["词条名称"],
-          content: data["内容"],
-          definition: data["定义/解释/翻译校对"],
-          source: data["来源Soucre / 章节 Chapter"],
-          author: data["Author"],
-          aiGenerated: data["人工智能生成 AI-generated"],
-          createdDate: data.Date,
-          lastEditedTime: data["Last edited time"],
-          aiModel: data["人工智能模型"],
-        };
-
-        setWikiData(formattedItem);
-
-        const sourceInfo = data["来源Soucre / 章节 Chapter"] || "";
-        let bookName = sourceInfo;
-        let authorName = "";
-
-        const authorMatch = sourceInfo.match(/^([^：:]+)[：:]/);
-        if (authorMatch) {
-          authorName = authorMatch[1].trim();
-          bookName = sourceInfo.substring(authorMatch[0].length).trim();
-        }
-
-        try {
-          let relatedBySource = [];
-          try {
-            const { data: sourceData, error: relatedSourceError } =
-              await supabase
-                .from("wiki")
-                .select("*")
-                .filter(
-                  '"来源Soucre / 章节 Chapter"',
-                  "eq",
-                  data["来源Soucre / 章节 Chapter"]
-                )
-                .neq("id", data.id)
-                .limit(5);
-
-            if (relatedSourceError) {
-              console.error(
-                "Error fetching related items by source:",
-                relatedSourceError.message ||
-                  JSON.stringify(relatedSourceError) ||
-                  "Unknown error"
-              );
-            } else {
-              relatedBySource = sourceData || [];
-            }
-          } catch (error) {
-            console.error("Error fetching related items by source:", error);
-          }
-
-          let relatedByAuthor = [];
-          if (authorName) {
-            try {
-              const { data: authorData, error: relatedAuthorError } =
-                await supabase
-                  .from("wiki")
-                  .select("*")
-                  .or(
-                    `内容.ilike.%${authorName}%,词条名称.ilike.%${authorName}%`
-                  )
-                  .neq("id", data.id)
-                  .limit(5);
-
-              if (relatedAuthorError) {
-                console.error(
-                  "Error fetching related items by author:",
-                  relatedAuthorError.message ||
-                    JSON.stringify(relatedAuthorError) ||
-                    "Unknown error"
-                );
-              } else {
-                relatedByAuthor = authorData || [];
-              }
-            } catch (error) {
-              console.error("Error fetching related items by author:", error);
-            }
-          }
-
-          let relatedByAuthor2 = [];
-          try {
-            const { data: authorData2, error: relatedAuthorError2 } =
-              await supabase
-                .from("wiki")
-                .select("*")
-                .eq("Author", data["Author"])
-                .neq("id", data.id)
-                .limit(5);
-
-            if (relatedAuthorError2) {
-              console.error(
-                "Error fetching related items by author:",
-                relatedAuthorError2.message ||
-                  JSON.stringify(relatedAuthorError2) ||
-                  "Unknown error"
-              );
-            } else {
-              relatedByAuthor2 = authorData2 || [];
-            }
-          } catch (error) {
-            console.error("Error fetching related items by author:", error);
-          }
-
-          const combinedRelated = [
-            ...(relatedBySource || []),
-            ...(relatedByAuthor || []),
-            ...(relatedByAuthor2 || []),
-          ];
-          const uniqueRelated = Array.from(
-            new Set(combinedRelated.map((item) => item.id))
-          )
-            .map((id) => combinedRelated.find((item) => item.id === id))
-            .filter(Boolean)
-            .slice(0, 10);
-
-          if (uniqueRelated.length > 0) {
-            const formattedRelated: WikiCard[] = uniqueRelated.map(
-              (item: any) => ({
-                id: item.id,
-                title: item["词条名称"],
-                content: item["内容"],
-                definition: item["定义/解释/翻译校对"],
-                source: item["来源Soucre / 章节 Chapter"],
-                author: item["Author"],
-                aiGenerated: item["人工智能生成 AI-generated"],
-                createdDate: item.Date,
-                lastEditedTime: item["Last edited time"],
-                aiModel: item["人工智能模型"],
-              })
-            );
-
-            setRelatedItems(formattedRelated);
-          }
-        } catch (error) {
-          console.error("Error fetching related items:", error);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
   return isClient ? content : null;
 }
