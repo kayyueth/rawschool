@@ -36,12 +36,14 @@ export default function WikiEditor({
 }: WikiEditorProps) {
   const [formData, setFormData] = useState<WikiItem>({
     词条名称: "",
-    "定义/解释/翻译校对": "",
-    "来源Soucre / 章节 Chapter": "",
     "人工智能生成 AI-generated": false,
     内容: "",
     Author: "",
     人工智能模型: null,
+    book_title: "",
+    content_type: "one-line",
+    chapter: "",
+    page: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +68,7 @@ export default function WikiEditor({
         ...prev,
         Author: account,
       }));
+      fetchAuthorUsername(account);
     }
   }, [account]);
 
@@ -79,12 +82,15 @@ export default function WikiEditor({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]:
+        name === "content_type" ? (value as "one-line" | "paragraph") : value,
     }));
   };
 
@@ -109,23 +115,28 @@ export default function WikiEditor({
       return;
     }
 
-    if (!formData["定义/解释/翻译校对"].trim()) {
-      setError("定义/解释/翻译校对不能为空");
+    if (!formData.book_title.trim()) {
+      setError("Book title / DOI / Website cannot be empty");
       return;
     }
 
-    if (!formData["来源Soucre / 章节 Chapter"].trim()) {
-      setError("来源/章节不能为空");
+    if (!formData.chapter.trim()) {
+      setError("Chapter cannot be empty");
       return;
     }
 
-    // 确保使用钱包地址作为作者
-    const authorAddress = account;
+    if (!formData.page.trim()) {
+      setError("Page cannot be empty");
+      return;
+    }
 
     if (!formData.内容.trim()) {
       setError("内容不能为空");
       return;
     }
+
+    // 确保使用钱包地址作为作者
+    const authorAddress = account;
 
     setIsLoading(true);
     setError(null);
@@ -135,17 +146,18 @@ export default function WikiEditor({
 
       // 确保数据格式与数据库匹配
       const formattedData = {
-        id: formData.id || uuidv4(), // 如果没有ID，生成一个新的UUID
+        id: formData.id || uuidv4(),
         词条名称: formData.词条名称,
-        "定义/解释/翻译校对": formData["定义/解释/翻译校对"],
-        "来源Soucre / 章节 Chapter": formData["来源Soucre / 章节 Chapter"],
-        Author: authorAddress, // 使用钱包地址作为作者
+        Author: authorAddress,
         "人工智能生成 AI-generated": formData["人工智能生成 AI-generated"]
           ? "true"
           : "false",
         内容: formData.内容,
         人工智能模型: formData.人工智能模型,
-        // 不包含 Property 和 wallet_address 字段，因为 SQL 插入语句中没有这些字段
+        book_title: formData.book_title,
+        content_type: formData.content_type,
+        chapter: formData.chapter,
+        page: formData.page,
       };
 
       if (isEdit && wikiItem?.id) {
@@ -243,7 +255,18 @@ export default function WikiEditor({
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="词条名称">Wiki Entry Name</Label>
+            <Label htmlFor="book_title">Book Title / DOI / Website</Label>
+            <Input
+              id="book_title"
+              name="book_title"
+              value={formData.book_title}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="词条名称">Wiki Name</Label>
             <Input
               id="词条名称"
               name="词条名称"
@@ -254,27 +277,42 @@ export default function WikiEditor({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="定义/解释/翻译校对">
-              Definition/explanation/translation
-            </Label>
-            <Textarea
-              id="定义/解释/翻译校对"
-              name="定义/解释/翻译校对"
-              value={formData["定义/解释/翻译校对"]}
+            <Label htmlFor="content_type">Content Type</Label>
+            <select
+              id="content_type"
+              name="content_type"
+              value={formData.content_type}
               onChange={handleChange}
+              className="w-full rounded-md border border-input bg-background px-3 py-2"
               required
-            />
+            >
+              <option value="one-line">One Line</option>
+              <option value="paragraph">Paragraph</option>
+            </select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="来源Soucre / 章节 Chapter">Source/chapter</Label>
-            <Input
-              id="来源Soucre / 章节 Chapter"
-              name="来源Soucre / 章节 Chapter"
-              value={formData["来源Soucre / 章节 Chapter"]}
-              onChange={handleChange}
-              required
-            />
+          <div className="flex gap-2 justify-between">
+            <div className="space-y-2 w-1/2">
+              <Label htmlFor="chapter">Chapter</Label>
+              <Input
+                id="chapter"
+                name="chapter"
+                value={formData.chapter}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2 w-1/2">
+              <Label htmlFor="page">Page</Label>
+              <Input
+                id="page"
+                name="page"
+                type="number"
+                value={formData.page}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -313,7 +351,7 @@ export default function WikiEditor({
           <div className="space-y-2">
             <Label htmlFor="Author">Author</Label>
             <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-              {account ? account : "Please connect your wallet"}
+              {authorUsername || account || "Please connect your wallet"}
             </p>
           </div>
 
@@ -371,7 +409,17 @@ export function WikiEditorContent({
       className="space-y-4 mt-4"
     >
       <div className="space-y-2">
-        <Label htmlFor="词条名称">Wiki Entry Name</Label>
+        <Label htmlFor="book_title">Book Title / DOI / Website</Label>
+        <Input
+          id="book_title"
+          name="book_title"
+          defaultValue={wikiItem.book_title}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="词条名称">Wiki Name</Label>
         <Input
           id="词条名称"
           name="词条名称"
@@ -381,34 +429,38 @@ export function WikiEditorContent({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="定义/解释/翻译校对">
-          Definition/explanation/translation
-        </Label>
-        <Textarea
-          id="定义/解释/翻译校对"
-          name="定义/解释/翻译校对"
-          defaultValue={wikiItem["定义/解释/翻译校对"]}
+        <Label htmlFor="content_type">Content Type</Label>
+        <select
+          id="content_type"
+          name="content_type"
+          defaultValue={wikiItem.content_type}
+          className="w-full rounded-md border border-input bg-background px-3 py-2"
+          required
+        >
+          <option value="one-line">One Line</option>
+          <option value="paragraph">Paragraph</option>
+        </select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="chapter">Chapter</Label>
+        <Input
+          id="chapter"
+          name="chapter"
+          defaultValue={wikiItem.chapter}
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="来源Soucre / 章节 Chapter">Source/chapter</Label>
+        <Label htmlFor="page">Page</Label>
         <Input
-          id="来源Soucre / 章节 Chapter"
-          name="来源Soucre / 章节 Chapter"
-          defaultValue={wikiItem["来源Soucre / 章节 Chapter"]}
+          id="page"
+          name="page"
+          type="number"
+          defaultValue={wikiItem.page}
           required
         />
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="人工智能生成 AI-generated"
-          name="人工智能生成 AI-generated"
-          defaultChecked={wikiItem["人工智能生成 AI-generated"]}
-        />
-        <Label htmlFor="人工智能生成 AI-generated">AI Generated</Label>
       </div>
 
       <div className="space-y-2">
@@ -420,6 +472,15 @@ export function WikiEditorContent({
           className="min-h-[200px]"
           required
         />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="人工智能生成 AI-generated"
+          name="人工智能生成 AI-generated"
+          defaultChecked={wikiItem["人工智能生成 AI-generated"]}
+        />
+        <Label htmlFor="人工智能生成 AI-generated">AI Generated</Label>
       </div>
 
       <div className="flex justify-end space-x-2">

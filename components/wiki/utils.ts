@@ -10,8 +10,6 @@ export function wikiItemToCard(item: WikiItem): WikiCard {
     id: item.id || "",
     title: item.词条名称,
     content: item.内容,
-    definition: item["定义/解释/翻译校对"],
-    source: item["来源Soucre / 章节 Chapter"],
     author: item.Author,
     aiGenerated:
       typeof item["人工智能生成 AI-generated"] === "string"
@@ -20,6 +18,10 @@ export function wikiItemToCard(item: WikiItem): WikiCard {
     createdDate: item.Date || "",
     lastEditedTime: item["Last edited time"] || "",
     aiModel: item.人工智能模型 || null,
+    bookTitle: item.book_title,
+    contentType: item.content_type,
+    chapter: item.chapter,
+    page: item.page,
   };
 }
 
@@ -30,15 +32,16 @@ export function wikiItemToConceptCard(item: WikiItem): ConceptCard {
   return {
     id: item.id || "",
     title: item.词条名称,
-    frontContent: item["定义/解释/翻译校对"],
     backContent: item.内容,
     author: item.Author,
-    source: item["来源Soucre / 章节 Chapter"],
-    type: item.Property || "",
     aiGenerated:
       typeof item["人工智能生成 AI-generated"] === "string"
         ? item["人工智能生成 AI-generated"] === "true"
         : !!item["人工智能生成 AI-generated"],
+    bookTitle: item.book_title,
+    contentType: item.content_type,
+    chapter: item.chapter,
+    page: item.page,
   };
 }
 
@@ -49,14 +52,16 @@ export function wikiCardToItem(card: WikiCard): WikiItem {
   return {
     id: card.id,
     词条名称: card.title,
-    "定义/解释/翻译校对": card.definition,
-    "来源Soucre / 章节 Chapter": card.source,
     "人工智能生成 AI-generated": card.aiGenerated,
     内容: card.content,
     Author: card.author,
     人工智能模型: card.aiModel,
     Date: card.createdDate,
     "Last edited time": card.lastEditedTime,
+    book_title: card.bookTitle,
+    content_type: card.contentType,
+    chapter: card.chapter,
+    page: card.page,
   };
 }
 
