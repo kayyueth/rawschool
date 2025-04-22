@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabaseClient";
 import { useWeb3 } from "@/lib/web3Context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Plus, Edit } from "lucide-react";
@@ -25,7 +24,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import RichTextEditor from "./RichTextEditor";
 
 interface FormValues {
   id: string;
@@ -186,6 +187,13 @@ export default function WikiEditor({
     }
   };
 
+  const handleContentChange = (newContent: string) => {
+    setFormValues((prev) => ({
+      ...prev,
+      content: newContent,
+    }));
+  };
+
   return (
     <div
       className="text-black rounded-lg px-10 w-full mx-auto"
@@ -264,13 +272,9 @@ export default function WikiEditor({
 
           <div className="space-y-2">
             <Label htmlFor="content">Content</Label>
-            <Textarea
-              id="content"
-              name="content"
-              value={formValues.content}
-              onChange={handleChange}
-              className="min-h-[160px]"
-              required
+            <RichTextEditor
+              content={formValues.content}
+              onChange={handleContentChange}
             />
           </div>
 
@@ -319,10 +323,10 @@ export default function WikiEditor({
 }
 
 export function CreateWikiButton({ onSave }: { onSave?: () => void }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="flex items-center gap-2">
           <Plus size={16} /> Create Wiki Entry
@@ -337,10 +341,10 @@ export function CreateWikiButton({ onSave }: { onSave?: () => void }) {
         <div className="p-0 overflow-visible">
           <WikiEditor
             onSave={() => {
-              setIsOpen(false);
+              setOpen(false);
               if (onSave) onSave();
             }}
-            onCancel={() => setIsOpen(false)}
+            onCancel={() => setOpen(false)}
           />
         </div>
       </DialogContent>
@@ -355,10 +359,10 @@ export function EditWikiButton({
   wikiItem: WikiItem;
   onSave?: () => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="flex items-center gap-1">
           <Edit size={14} /> Edit
@@ -373,10 +377,10 @@ export function EditWikiButton({
             wikiItem={wikiItem}
             isEdit={true}
             onSave={() => {
-              setIsOpen(false);
+              setOpen(false);
               if (onSave) onSave();
             }}
-            onCancel={() => setIsOpen(false)}
+            onCancel={() => setOpen(false)}
           />
         </div>
       </DialogContent>

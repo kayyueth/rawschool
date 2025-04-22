@@ -37,6 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { WikiCard } from "./types";
+import { formatContentWithLinks } from "./textUtils";
 
 interface WikiCardProps {
   title: string;
@@ -58,7 +59,9 @@ const RelatedCard = ({
       <h3 className="text-xl font-bold border-b-2 border-black pb-2">
         {card.title}
       </h3>
-      <p className="text-md mt-4 flex-grow line-clamp-4">{card.content}</p>
+      <div className="text-md mt-4 flex-grow overflow-hidden max-h-[120px]">
+        {formatContentWithLinks(card.content)}
+      </div>
       <div className="mt-4 text-sm text-black/60">
         <p>Click to view details</p>
       </div>
@@ -547,7 +550,7 @@ export default function WikiCardComponent({
                 Content
               </p>
               <div className="md:text-xl text-xs whitespace-pre-wrap">
-                {wikiData.content}
+                {formatContentWithLinks(wikiData.content)}
               </div>
             </div>
 
