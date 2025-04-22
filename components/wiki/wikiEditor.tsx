@@ -188,13 +188,9 @@ export default function WikiEditor({
 
   return (
     <div
-      className="text-black rounded-lg p-10 w-full mx-auto"
+      className="text-black rounded-lg px-10 w-full mx-auto"
       style={{ position: "relative" }}
     >
-      <h2 className="text-2xl font-bold mb-6">
-        {isEdit ? "Edit Wiki Entry" : "Create Wiki Entry"}
-      </h2>
-
       <form onSubmit={handleSubmit}>
         <div className="space-y-6 " style={{ maxHeight: "calc(80vh - 100px)" }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -273,13 +269,13 @@ export default function WikiEditor({
               name="content"
               value={formValues.content}
               onChange={handleChange}
-              className="min-h-[200px]"
+              className="min-h-[160px]"
               required
             />
           </div>
 
           <div className="flex justify-between">
-            <div className="">
+            <div>
               <div className="space-x-2">
                 <Checkbox
                   id="aiGenerated"
@@ -288,7 +284,7 @@ export default function WikiEditor({
                 />
                 <Label htmlFor="aiGenerated">AI-generated</Label>
               </div>
-              <div className="flex space-x-4 mt-4">
+              <div className="flex space-x-4 mt-4 mb-10">
                 <Button
                   type="button"
                   variant="outline"
@@ -305,7 +301,7 @@ export default function WikiEditor({
               </div>
             </div>
             {formValues.aiGenerated && (
-              <div className="space-y-1 mt-2 grid">
+              <div className="grid h-[80px]">
                 <Label htmlFor="aiModel">AI model</Label>
                 <Input
                   id="aiModel"
@@ -333,6 +329,11 @@ export function CreateWikiButton({ onSave }: { onSave?: () => void }) {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold mt-10 ml-10">
+            Create Wiki Entry
+          </DialogTitle>
+        </DialogHeader>
         <div className="p-0 overflow-visible">
           <WikiEditor
             onSave={() => {

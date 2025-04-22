@@ -89,6 +89,16 @@ export default function WikiCardComponent({
     fetchWikiItem(title);
   }, [title]);
 
+  useEffect(() => {
+    if (wikiData) {
+      console.log("wikiData updated:", wikiData);
+      console.log("Book title:", wikiData.bookTitle);
+      console.log("Content type:", wikiData.contentType);
+      console.log("Chapter:", wikiData.chapter);
+      console.log("Page:", wikiData.page);
+    }
+  }, [wikiData]);
+
   async function fetchWikiItem(itemTitle: string) {
     try {
       setIsLoading(true);
@@ -105,6 +115,12 @@ export default function WikiCardComponent({
       }
 
       if (data) {
+        console.log("Raw data from DB:", data);
+        console.log(
+          "Book Title / DOI / Website value:",
+          data["Book Title / DOI / Website"]
+        );
+
         const formattedItem: WikiCard = {
           id: data.id,
           title: data["Wiki Name"],
@@ -121,6 +137,8 @@ export default function WikiCardComponent({
           username: data["Username"] || null,
         };
 
+        console.log("Formatted wiki data:", formattedItem);
+
         setWikiData(formattedItem);
 
         // Fetch editor's username
@@ -135,15 +153,48 @@ export default function WikiCardComponent({
         try {
           let relatedByBook = [];
           try {
+            console.log(
+              "Attempting to fetch related items with book title:",
+              data["Book Title / DOI / Website"]
+            );
+
+            // Try to get column info first
+            try {
+              const { data: tableInfo, error: tableError } = await supabase
+                .from("wiki")
+                .select("*")
+                .limit(1);
+
+              if (tableInfo && tableInfo.length > 0) {
+                console.log(
+                  "First row column names:",
+                  Object.keys(tableInfo[0])
+                );
+              }
+
+              if (tableError) {
+                console.error("Error fetching table info:", tableError);
+              }
+            } catch (infoError) {
+              console.error("Error fetching column info:", infoError);
+            }
+
+            // Use match instead of eq for complex column names
             const { data: bookData, error: relatedBookError } = await supabase
               .from("wiki")
               .select("*")
-              .eq(
-                "Book Title / DOI / Website",
+              .filter(
+                '"Book Title / DOI / Website"',
+                "eq",
                 data["Book Title / DOI / Website"]
               )
               .neq("id", data.id)
               .limit(5);
+
+            console.log("Related book query result:", {
+              bookData,
+              relatedBookError,
+            });
 
             if (relatedBookError) {
               console.error(
@@ -448,10 +499,10 @@ export default function WikiCardComponent({
 
               <div className="col-span-2 md:col-span-1">
                 <p className="text-black/60 mb-1 md:text-sm text-xs">
-                  Creation Method
+                  AI Model
                 </p>
                 <p className="md:text-xl text-xs">
-                  {wikiData.aiGenerated ? "AI generated" : "Manual editing"}
+                  {wikiData.aiGenerated ? "AI generated" : ""}
                 </p>
                 {wikiData.aiGenerated && wikiData.aiModel && (
                   <p className="md:text-md text-xs text-black/70">
@@ -461,7 +512,37 @@ export default function WikiCardComponent({
               </div>
             </div>
 
-            <div className="md:mb-12 mb-4 border-t border-black md:pt-8 pt-4">
+            <div className="md:grid md:grid-cols-2 gap-8 md:mb-8 mb-4 md:pt-4 pt-2">
+              <div className="col-span-2 md:col-span-1 mb-4">
+                <p className="text-black/60 mb-1 md:text-sm text-xs">
+                  Content Type
+                </p>
+                <p className="md:text-xl text-xs">
+                  {wikiData.contentType || "-"}
+                </p>
+              </div>
+
+              <div className="col-span-2 md:col-span-1 mb-4">
+                <p className="text-black/60 mb-1 md:text-sm text-xs">
+                  Book Title / DOI / Website
+                </p>
+                <p className="md:text-xl text-xs">
+                  {wikiData.bookTitle || "-"}
+                </p>
+              </div>
+
+              <div className="col-span-2 md:col-span-1 mb-4">
+                <p className="text-black/60 mb-1 md:text-sm text-xs">Chapter</p>
+                <p className="md:text-xl text-xs">{wikiData.chapter || "-"}</p>
+              </div>
+
+              <div className="col-span-2 md:col-span-1 mb-4">
+                <p className="text-black/60 mb-1 md:text-sm text-xs">Page</p>
+                <p className="md:text-xl text-xs">{wikiData.page || "-"}</p>
+              </div>
+            </div>
+
+            <div className="md:mb-12 mb-4 md:pt-8 pt-4">
               <p className="text-black/60 md:mb-4 md:text-sm text-xs">
                 Content
               </p>
