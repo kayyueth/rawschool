@@ -95,11 +95,6 @@ export default function WikiCardComponent({
 
   useEffect(() => {
     if (wikiData) {
-      console.log("wikiData updated:", wikiData);
-      console.log("Book title:", wikiData.bookTitle);
-      console.log("Content type:", wikiData.contentType);
-      console.log("Chapter:", wikiData.chapter);
-      console.log("Page:", wikiData.page);
     }
   }, [wikiData]);
 
@@ -119,12 +114,6 @@ export default function WikiCardComponent({
       }
 
       if (data) {
-        console.log("Raw data from DB:", data);
-        console.log(
-          "Book Title / DOI / Website value:",
-          data["Book Title / DOI / Website"]
-        );
-
         const formattedItem: WikiCard = {
           id: data.id,
           title: data["Wiki Name"],
@@ -140,8 +129,6 @@ export default function WikiCardComponent({
           page: data["Page"] || null,
           username: data["Username"] || null,
         };
-
-        console.log("Formatted wiki data:", formattedItem);
 
         setWikiData(formattedItem);
 
@@ -169,13 +156,6 @@ export default function WikiCardComponent({
                 .select("*")
                 .limit(1);
 
-              if (tableInfo && tableInfo.length > 0) {
-                console.log(
-                  "First row column names:",
-                  Object.keys(tableInfo[0])
-                );
-              }
-
               if (tableError) {
                 console.error("Error fetching table info:", tableError);
               }
@@ -194,11 +174,6 @@ export default function WikiCardComponent({
               )
               .neq("id", data.id)
               .limit(5);
-
-            console.log("Related book query result:", {
-              bookData,
-              relatedBookError,
-            });
 
             if (relatedBookError) {
               console.error(

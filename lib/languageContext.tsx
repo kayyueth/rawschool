@@ -49,22 +49,6 @@ const translations: Translations = {
     en: "Failed to disconnect",
     zh: "断开连接失败",
   },
-  book: {
-    en: "Book",
-    zh: "书籍",
-  },
-  reviews: {
-    en: "Reviews",
-    zh: "评论",
-  },
-  join: {
-    en: "Join",
-    zh: "加入",
-  },
-  wiki: {
-    en: "Wiki",
-    zh: "百科",
-  },
   "bookclub.calendar": {
     en: "Bookclub Calender",
     zh: "读书会日历",

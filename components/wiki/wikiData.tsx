@@ -270,6 +270,9 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
 
   const content = (
     <div className="md:min-h-screen bg-[#FCFADE] md:px-24 py-12">
+      <div className="absolute right-20 top-20">
+        {isConnected && <CreateWikiButton />}
+      </div>
       <div className="flex flex-col items-center">
         <h1 className="md:text-6xl text-2xl font-bold mb-4 md:mb-8 md:mt-12">
           AmbiNet Database
@@ -409,8 +412,6 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
         {searchFeedback && (
           <div className="mt-4 text-black/70">{searchFeedback}</div>
         )}
-
-        {isConnected && <CreateWikiButton />}
       </div>
 
       <div id="results-section" className="mt-8 px-10 md:px-24 md:mb-20">

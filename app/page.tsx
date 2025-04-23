@@ -56,7 +56,6 @@ export default function Home() {
 
   // 处理词条详情查看
   const handleViewDetail = (title: string) => {
-    console.log(`查看词条详情: ${title}`);
     setSelectedWikiTitle(title);
     setCurrentView("wikiDetail");
   };
@@ -102,7 +101,6 @@ export default function Home() {
                   checked={showTable}
                   onCheckedChange={(checked) => {
                     setShowTable(checked);
-                    console.log("Switch toggled:", checked);
                   }}
                 />
                 <span

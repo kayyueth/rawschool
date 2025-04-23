@@ -15,11 +15,6 @@ import { logger } from "./logger";
 import { handleSupabaseError } from "./supabaseClient";
 import { PostgrestError } from "@supabase/supabase-js";
 
-// 定义以太坊窗口接口
-interface EthereumWindow extends Window {
-  ethereum?: any;
-}
-
 // 定义上下文类型
 interface Web3ContextType {
   account: string | null;
@@ -68,8 +63,7 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
   // 检查是否有可用的以太坊提供者
   const checkEthereumProvider = (): boolean => {
     return (
-      typeof window !== "undefined" &&
-      typeof (window as EthereumWindow).ethereum !== "undefined"
+      typeof window !== "undefined" && typeof window.ethereum !== "undefined"
     );
   };
 
@@ -161,9 +155,7 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       setError(null);
 
       // 请求账户访问权限
-      const provider = new ethers.providers.Web3Provider(
-        (window as EthereumWindow).ethereum
-      );
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const accounts = await provider.send("eth_requestAccounts", []);
 
       if (accounts.length > 0) {
@@ -283,9 +275,7 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       if (savedAddress && checkEthereumProvider()) {
         try {
           setIsConnecting(true);
-          const provider = new ethers.providers.Web3Provider(
-            (window as EthereumWindow).ethereum
-          );
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
           const accounts = await provider.listAccounts();
 
           // 确认钱包中仍有该账户
@@ -342,15 +332,12 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       };
 
       // 添加事件监听器
-      (window as EthereumWindow).ethereum?.on(
-        "accountsChanged",
-        handleAccountsChanged
-      );
+      window.ethereum?.on("accountsChanged", handleAccountsChanged);
 
       // 清理函数
       return () => {
-        if ((window as EthereumWindow).ethereum?.removeListener) {
-          (window as EthereumWindow).ethereum.removeListener(
+        if (window.ethereum?.removeListener) {
+          window.ethereum.removeListener(
             "accountsChanged",
             handleAccountsChanged
           );

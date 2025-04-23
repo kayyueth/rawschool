@@ -46,32 +46,3 @@ export function formatDateTime(
     minute: "2-digit",
   });
 }
-
-/**
- * 防抖函数
- * @param fn 要执行的函数
- * @param delay 延迟时间（毫秒）
- */
-export function debounce<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number = 300
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout;
-
-  return function (...args: Parameters<T>): void {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), delay);
-  };
-}
-
-/**
- * 检查值是否为空（null、undefined、空字符串、空数组或空对象）
- */
-export function isEmpty(value: unknown): boolean {
-  if (value === null || value === undefined) return true;
-  if (typeof value === "string") return value.trim() === "";
-  if (Array.isArray(value)) return value.length === 0;
-  if (typeof value === "object")
-    return Object.keys(value as object).length === 0;
-  return false;
-}
