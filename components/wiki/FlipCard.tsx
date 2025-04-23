@@ -5,10 +5,13 @@ interface ConceptCard {
   title: string;
   frontContent: string;
   backContent: string;
-  author: string;
-  source: string;
+  editor: string;
+  chapter: string;
   type: string;
   aiGenerated: boolean;
+  date: string;
+  bookTitle?: string | null;
+  page?: string | null;
 }
 
 interface FlipCardProps {
@@ -37,7 +40,20 @@ const flipCardStyles = `
 const FlipCard: React.FC<FlipCardProps> = ({ card, onViewDetail }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
+
+  // Format date to a more readable format
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+
+    try {
+      const date = new Date(dateString);
+      // Format as YYYY-MM-DD
+      return date.toISOString().split("T")[0];
+    } catch (error) {
+      return dateString;
+    }
+  };
 
   // Cleanup animation frame on unmount
   useEffect(() => {
@@ -120,14 +136,28 @@ const FlipCard: React.FC<FlipCardProps> = ({ card, onViewDetail }) => {
             <h3 className="md:text-2xl text-xl font-bold border-b-2 border-white pb-2">
               {card.title}
             </h3>
-            <p className="md:text-lg text-sm mt-4 flex-grow">
-              {card.backContent}
-            </p>
-            <div className="mt-4 text-sm">
-              <p>作者: {card.author}</p>
-              <p>来源: {card.source}</p>
+            <div className="mt-4 flex-grow overflow-y-auto">
+              {card.bookTitle && (
+                <p className="md:text-lg text-sm mb-2">
+                  Source: {card.bookTitle}
+                </p>
+              )}
+              <p className="md:text-lg text-sm mb-2">Chapter: {card.chapter}</p>
+              {card.page && (
+                <p className="md:text-lg text-sm mb-2">Page: {card.page}</p>
+              )}
+              <p className="md:text-lg text-sm mb-2">Editor: {card.editor}</p>
+              <p className="md:text-lg text-sm mb-2">Type: {card.type}</p>
+              <p className="md:text-lg text-sm mb-2">
+                Date: {formatDate(card.date)}
+              </p>
+              {card.aiGenerated && (
+                <p className="md:text-lg text-sm mb-2">AI generated: Yes</p>
+              )}
+            </div>
+            <div className="text-sm">
               <button
-                className="mt-2 bg-white text-black px-4 py-1 rounded hover:bg-white/70 transition-colors"
+                className=" bg-white text-black px-4 py-1 rounded hover:bg-white/70 transition-colors"
                 onClick={(e) => handleViewDetails(e, card.title)}
               >
                 View Full Content

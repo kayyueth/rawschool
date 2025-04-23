@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { CreateWikiButton } from "./wikiEditor";
 import { useWeb3 } from "@/lib/web3Context";
+import FlipCard from "./FlipCard";
 
 interface WikiItem {
   id: string;
@@ -30,15 +31,19 @@ interface WikiItem {
   Username: string | null;
 }
 
+// Local interface for the cards within this component
 interface ConceptCard {
   id: string;
   title: string;
-  frontContent: string;
+  frontContent: string; // Additional field for the front of the card
   backContent: string;
   editor: string;
   source: string;
   type: string;
   aiGenerated: boolean;
+  date?: string; // Optional date field
+  bookTitle?: string | null; // Optional book title
+  page?: string | null; // Optional page field
 }
 
 interface WikiDataProps {
@@ -62,81 +67,6 @@ const flipCardStyles = `
     transform: rotateY(180deg);
   }
 `;
-
-const FlipCard = ({
-  card,
-  onViewDetail,
-}: {
-  card: ConceptCard;
-  onViewDetail: (title: string) => void;
-}) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    setIsFlipped(!isFlipped);
-  };
-
-  const handleViewDetails = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onViewDetail(card.title);
-  };
-
-  return (
-    <>
-      <style jsx global>
-        {flipCardStyles}
-      </style>
-      <div
-        className="md:h-[400px] h-[280px] w-full perspective-1000 cursor-pointer"
-        onClick={handleCardClick}
-      >
-        <div
-          className={`relative w-full md:h-full transition-transform duration-500 transform-style-3d ${
-            isFlipped ? "rotate-y-180" : ""
-          }`}
-        >
-          {/* card front */}
-          <div className="absolute w-full md:h-full backface-hidden bg-[#FCFADE] rounded-lg shadow-xl p-6 flex flex-col border border-black">
-            <h3 className="md:text-2xl text-xl font-bold border-b-2 border-black pb-2">
-              {card.title}
-            </h3>
-            <p className="md:text-lg text-sm mt-4 flex-grow">
-              {card.frontContent}
-            </p>
-            <div className="mt-4 text-sm text-black/60">
-              <button
-                className="bg-black text-white px-4 py-1 rounded hover:bg-black/70 transition-colors"
-                onClick={handleViewDetails}
-              >
-                View Details
-              </button>
-            </div>
-          </div>
-
-          {/* card back */}
-          <div className="absolute w-full md:h-full backface-hidden bg-black text-white rounded-lg shadow-xl p-6 rotate-y-180 flex flex-col">
-            <h3 className="md:text-2xl text-xl font-bold border-b-2 border-white pb-2">
-              {card.title}
-            </h3>
-            <p className="md:text-lg text-sm mt-4 flex-grow">
-              {card.backContent}
-            </p>
-            <div className="mt-4 text-sm">
-              <p>作者: {card.editor}</p>
-              <p>来源: {card.source}</p>
-              <button
-                className="mt-2 bg-white text-black px-4 py-1 rounded hover:bg-white/70 transition-colors"
-                onClick={handleViewDetails}
-              >
-                View Full Content
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
 
 export default function WikiData({ onViewDetail }: WikiDataProps) {
   const [cards, setCards] = useState<ConceptCard[]>([]);
@@ -229,16 +159,11 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
     const authorMatches = authors.filter((author) =>
       author.toLowerCase().includes(query.toLowerCase())
     );
-
     const conceptMatches = concepts.filter((concept) =>
       concept.toLowerCase().includes(query.toLowerCase())
     );
 
-    if (authorMatches.length > 0 && conceptMatches.length === 0) {
-      return true;
-    }
-
-    return false;
+    return authorMatches.length > conceptMatches.length;
   };
 
   const handleAuthorSearch = (authorName: string) => {
@@ -293,6 +218,11 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
             source: item["Chapter"],
             type: item["Content Type"],
             aiGenerated: item["AI-generated"],
+            date: item["Date"]
+              ? item["Date"].toString()
+              : new Date().toISOString(),
+            bookTitle: item["Book Title / DOI / Website"],
+            page: item["Page"],
           }));
 
           setCards(formattedCards);
@@ -320,6 +250,23 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
     fetchWikiData();
   }, []);
 
+  // Update the adapter function
+  const adaptCardForFlipCard = (card: ConceptCard) => {
+    return {
+      id: card.id,
+      title: card.title,
+      frontContent: card.frontContent,
+      backContent: card.backContent,
+      editor: card.editor,
+      chapter: card.source, // Map source to chapter
+      type: card.type,
+      aiGenerated: card.aiGenerated,
+      date: card.date || new Date().toISOString(), // Use provided date or default to today
+      bookTitle: card.bookTitle,
+      page: card.page,
+    };
+  };
+
   const content = (
     <div className="md:min-h-screen bg-[#FCFADE] md:px-24 py-12">
       <div className="flex flex-col items-center">
@@ -339,7 +286,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
               <input
                 type="text"
-                placeholder="Search concepts, authors, or keywords..."
+                placeholder="Search concepts, editors, or keywords..."
                 className="flex h-[40px] w-full bg-[#FCFADE] text-black py-3 text-sm outline-none placeholder:text-black/50"
                 value={searchQuery}
                 onChange={(e) => {
@@ -416,119 +363,53 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
                           </div>
                         ))}
                     </div>
-                    {authors.length > 0 && (
-                      <>
-                        <div className="h-px bg-black/20 -mx-1"></div>
-                        <div className="p-1">
-                          <div className="px-2 py-1.5 text-xs font-medium text-black/50">
-                            Popular Authors
+                    <div className="p-1">
+                      <div className="px-2 py-1.5 text-xs font-medium text-black/50">
+                        Editors
+                      </div>
+                      {authors
+                        .filter(
+                          (editor) =>
+                            !searchQuery ||
+                            editor
+                              .toLowerCase()
+                              .includes(searchQuery.toLowerCase())
+                        )
+                        .slice(0, 5)
+                        .map((editor) => (
+                          <div
+                            key={editor}
+                            className="cursor-pointer p-2 hover:bg-black/10 rounded-sm text-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCommandItemClick(editor, true);
+                            }}
+                            onMouseDown={(e) => e.preventDefault()}
+                          >
+                            {editor}
                           </div>
-                          {authors
-                            .filter(
-                              (author) =>
-                                !searchQuery ||
-                                author
-                                  .toLowerCase()
-                                  .includes(searchQuery.toLowerCase())
-                            )
-                            .slice(0, 5)
-                            .map((author) => (
-                              <div
-                                key={author}
-                                className="cursor-pointer p-2 hover:bg-black/10 rounded-sm text-sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCommandItemClick(author, true);
-                                }}
-                                onMouseDown={(e) => e.preventDefault()}
-                              >
-                                {author}
-                              </div>
-                            ))}
-                        </div>
-                      </>
-                    )}
+                        ))}
+                    </div>
                   </>
                 )}
               </div>
             )}
           </div>
+
           <Button
-            className="h-[43px] bg-black text-white font-black text-sm rounded-l-none rounded-r-md hover:bg-black/60"
-            onClick={() => {
-              if (isAuthorSearchQuery(searchQuery)) {
-                handleAuthorSearch(searchQuery);
-              } else {
-                const hasResults = handleSearch();
-
-                if (searchQuery.trim() && hasResults) {
-                  const exactMatch = cards.find(
-                    (card) =>
-                      card.title.toLowerCase() === searchQuery.toLowerCase()
-                  );
-
-                  if (exactMatch) {
-                    handleNavigate(exactMatch.title);
-                  } else if (filteredCards.length > 0) {
-                    handleNavigate(filteredCards[0].title);
-                  }
-                }
-              }
-            }}
+            type="submit"
+            className="bg-black hover:bg-black/80 rounded-r-md rounded-l-none h-10 border border-l-0 border-black"
+            onClick={handleSearch}
           >
             Search
           </Button>
         </div>
 
-        {/* Add Card 按钮 - 仅在钱包连接时显示 */}
-        {isConnected && (
-          <div className="absolute right-20 top-30">
-            <CreateWikiButton
-              onSave={() => {
-                // 保存后刷新数据
-                setIsLoading(true);
-                // 重新获取数据
-                async function refreshData() {
-                  try {
-                    const { data, error } = await supabase
-                      .from("wiki")
-                      .select("*")
-                      .order("Date", { ascending: false });
-
-                    if (error) throw error;
-
-                    if (data) {
-                      // 转换数据格式
-                      const formattedCards = data.map((item) => ({
-                        id: item.id,
-                        title: item["Wiki Name"],
-                        frontContent: item["Content Type"],
-                        backContent: item["Content"],
-                        editor: item["Editor"] || "人工编辑",
-                        source: item["Chapter"],
-                        type: item["Content Type"],
-                        aiGenerated: item["AI-generated"],
-                      }));
-
-                      setCards(formattedCards);
-                      setFilteredCards(formattedCards);
-                    }
-                  } catch (err) {
-                    console.error("Error fetching wiki data:", err);
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }
-
-                refreshData();
-              }}
-            />
-          </div>
+        {searchFeedback && (
+          <div className="mt-4 text-black/70">{searchFeedback}</div>
         )}
-      </div>
 
-      <div className="md:mt-16 mb-4 text-center text-lg">
-        {searchFeedback && <p>{searchFeedback}</p>}
+        {isConnected && <CreateWikiButton />}
       </div>
 
       <div id="results-section" className="mt-8 px-10 md:px-24 md:mb-20">
@@ -540,7 +421,10 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
             <CarouselContent>
               {filteredCards.map((card) => (
                 <CarouselItem key={card.id} className="pl-4 md:basis-1/3">
-                  <FlipCard card={card} onViewDetail={handleNavigate} />
+                  <FlipCard
+                    card={adaptCardForFlipCard(card)}
+                    onViewDetail={handleNavigate}
+                  />
                 </CarouselItem>
               ))}
             </CarouselContent>
