@@ -270,7 +270,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
 
   const content = (
     <div className="md:min-h-screen bg-[#FCFADE] md:px-24 py-12">
-      <div className="absolute right-20 top-20">
+      <div className="absolute right-20 top-100">
         {isConnected && <CreateWikiButton />}
       </div>
       <div className="flex flex-col items-center">

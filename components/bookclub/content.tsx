@@ -12,7 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useWeb3 } from "@/lib/web3Context";
-import { getUsernamesByWalletAddresses } from "@/lib/auth/userService";
+import {
+  getUsernamesByWalletAddresses,
+  getUsernameByWalletAddress,
+} from "@/lib/auth/userService";
 import { truncateAddress } from "@/lib/utils";
 import { BookSkeleton } from "@/components/bookclub/BookSkeleton";
 
@@ -53,6 +56,39 @@ export default function Content({ selectedData }: ContentProps) {
     Record<string, string>
   >({});
   const { isConnected, account } = useWeb3();
+
+  const fetchCurrentUser = async () => {
+    if (!account) return;
+
+    try {
+      // Try direct database approach
+      const { data, error } = await supabase
+        .from("users")
+        .select("username")
+        .eq("wallet_address", account.toLowerCase())
+        .single();
+
+      console.log("Direct DB query result:", data, error);
+
+      if (data && data.username) {
+        // Add username to state with both original and lowercase wallet address keys
+        setReviewerUsernames((prev) => ({
+          ...prev,
+          [account]: data.username,
+          [account.toLowerCase()]: data.username,
+        }));
+      }
+    } catch (error) {
+      console.error("Error in direct DB query:", error);
+    }
+  };
+
+  // Fetch username when wallet is connected
+  useEffect(() => {
+    if (isConnected && account) {
+      fetchCurrentUser();
+    }
+  }, [isConnected, account]);
 
   useEffect(() => {
     // If selectedData is provided, use it directly
@@ -97,8 +133,90 @@ export default function Content({ selectedData }: ContentProps) {
         reviewer: account,
       }));
       setCurrentReviewer(account);
+
+      // Also fetch the username for the current account
+      if (account) {
+        // Force lowercase for consistent key lookup
+        const normalizedAccount = account.toLowerCase();
+
+        // Log the account for debugging
+        console.log("Connected account:", account);
+        console.log("Normalized account:", normalizedAccount);
+
+        // Try both approaches to fetch username
+        getUsernameByWalletAddress(account)
+          .then((username) => {
+            console.log("Direct username lookup result:", username);
+            if (username) {
+              setReviewerUsernames((prev) => ({
+                ...prev,
+                [normalizedAccount]: username,
+              }));
+            }
+          })
+          .catch((error) => {
+            console.error("Direct username lookup error:", error);
+          });
+
+        getUsernamesByWalletAddresses([normalizedAccount])
+          .then((usernameMap) => {
+            console.log("Username map lookup result:", usernameMap);
+            // Make sure we're using the normalized address as the key
+            if (Object.keys(usernameMap).length > 0) {
+              setReviewerUsernames((prev) => {
+                const newMap = { ...prev };
+
+                // Add entries with both original and lowercase keys to be safe
+                Object.entries(usernameMap).forEach(([addr, username]) => {
+                  newMap[addr] = username;
+                  newMap[addr.toLowerCase()] = username;
+                });
+
+                console.log("Updated reviewerUsernames from map:", newMap);
+                return newMap;
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching current username:", error);
+          });
+      }
     }
   }, [isConnected, account]);
+
+  // Run only once when the component mounts and account is available
+  useEffect(() => {
+    if (isConnected && account) {
+      // Initialize with account info
+      console.log("Component mounted with account:", account);
+
+      // Force check for username on component mount
+      const checkUsername = async () => {
+        try {
+          // Try direct database approach
+          const { data, error } = await supabase
+            .from("users")
+            .select("username, wallet_address")
+            .eq("wallet_address", account.toLowerCase())
+            .single();
+
+          console.log("Component mount DB check:", data, error);
+
+          if (data && data.username) {
+            console.log("Found username on mount:", data.username);
+            setReviewerUsernames({
+              [account]: data.username,
+              [account.toLowerCase()]: data.username,
+            });
+          }
+        } catch (err) {
+          console.error("Error checking username on mount:", err);
+        }
+      };
+
+      checkUsername();
+    }
+  }, []); // Empty dependency array = only run once
 
   const fetchReviews = async (bookId: number) => {
     try {
@@ -135,9 +253,16 @@ export default function Content({ selectedData }: ContentProps) {
   };
 
   const getReviewerDisplayName = (walletAddress: string) => {
-    // If we have a username mapping, use it directly
-    if (reviewerUsernames[walletAddress]) {
-      return reviewerUsernames[walletAddress];
+    // Normalize the wallet address to lowercase for comparison
+    const normalizedAddress = walletAddress.toLowerCase();
+
+    // Check if we have a username for this address
+    const username = Object.entries(reviewerUsernames).find(
+      ([addr]) => addr.toLowerCase() === normalizedAddress
+    )?.[1];
+
+    if (username) {
+      return username;
     }
 
     // Only truncate if the string length is greater than 30 characters
@@ -318,7 +443,22 @@ export default function Content({ selectedData }: ContentProps) {
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Reviewer</label>
                       <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-                        {account ? account : "Please connect your wallet"}
+                        {account
+                          ? reviewerUsernames[account.toLowerCase()] ||
+                            reviewerUsernames[account] ||
+                            (account.length > 30
+                              ? truncateAddress(account)
+                              : account)
+                          : "Please connect your wallet"}
+                      </p>
+                      {/* Debug info - remove in production */}
+                      <p className="text-xs text-gray-400">
+                        {JSON.stringify({
+                          hasUsername: Boolean(
+                            reviewerUsernames[account?.toLowerCase() || ""]
+                          ),
+                          usernames: Object.keys(reviewerUsernames),
+                        })}
                       </p>
                     </div>
                     <div className="space-y-2">
