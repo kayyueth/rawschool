@@ -68,8 +68,6 @@ export default function Content({ selectedData }: ContentProps) {
         .eq("wallet_address", account.toLowerCase())
         .single();
 
-      console.log("Direct DB query result:", data, error);
-
       if (data && data.username) {
         // Add username to state with both original and lowercase wallet address keys
         setReviewerUsernames((prev) => ({
@@ -139,14 +137,9 @@ export default function Content({ selectedData }: ContentProps) {
         // Force lowercase for consistent key lookup
         const normalizedAccount = account.toLowerCase();
 
-        // Log the account for debugging
-        console.log("Connected account:", account);
-        console.log("Normalized account:", normalizedAccount);
-
         // Try both approaches to fetch username
         getUsernameByWalletAddress(account)
           .then((username) => {
-            console.log("Direct username lookup result:", username);
             if (username) {
               setReviewerUsernames((prev) => ({
                 ...prev,
@@ -160,7 +153,6 @@ export default function Content({ selectedData }: ContentProps) {
 
         getUsernamesByWalletAddresses([normalizedAccount])
           .then((usernameMap) => {
-            console.log("Username map lookup result:", usernameMap);
             // Make sure we're using the normalized address as the key
             if (Object.keys(usernameMap).length > 0) {
               setReviewerUsernames((prev) => {
@@ -172,7 +164,6 @@ export default function Content({ selectedData }: ContentProps) {
                   newMap[addr.toLowerCase()] = username;
                 });
 
-                console.log("Updated reviewerUsernames from map:", newMap);
                 return newMap;
               });
             }
@@ -188,7 +179,6 @@ export default function Content({ selectedData }: ContentProps) {
   useEffect(() => {
     if (isConnected && account) {
       // Initialize with account info
-      console.log("Component mounted with account:", account);
 
       // Force check for username on component mount
       const checkUsername = async () => {
@@ -200,10 +190,7 @@ export default function Content({ selectedData }: ContentProps) {
             .eq("wallet_address", account.toLowerCase())
             .single();
 
-          console.log("Component mount DB check:", data, error);
-
           if (data && data.username) {
-            console.log("Found username on mount:", data.username);
             setReviewerUsernames({
               [account]: data.username,
               [account.toLowerCase()]: data.username,
@@ -450,15 +437,6 @@ export default function Content({ selectedData }: ContentProps) {
                               ? truncateAddress(account)
                               : account)
                           : "Please connect your wallet"}
-                      </p>
-                      {/* Debug info - remove in production */}
-                      <p className="text-xs text-gray-400">
-                        {JSON.stringify({
-                          hasUsername: Boolean(
-                            reviewerUsernames[account?.toLowerCase() || ""]
-                          ),
-                          usernames: Object.keys(reviewerUsernames),
-                        })}
                       </p>
                     </div>
                     <div className="space-y-2">
