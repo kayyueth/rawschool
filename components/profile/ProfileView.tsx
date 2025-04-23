@@ -22,6 +22,7 @@ import {
   updateUsername,
   getUsernameByWalletAddress,
 } from "@/lib/auth/userService";
+import { Loading } from "@/components/ui/loading";
 
 interface DisplayReview {
   id: string;
@@ -188,7 +189,7 @@ export default function ProfileView() {
 
         <TabsContent value="bookclub">
           {isLoading ? (
-            <p>Loading...</p>
+            <Loading variant="card" count={2} />
           ) : bookclubReviews.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {bookclubReviews.map((review) => (
@@ -212,7 +213,7 @@ export default function ProfileView() {
 
         <TabsContent value="ambient">
           {isLoading ? (
-            <p>Loading...</p>
+            <Loading variant="card" count={2} />
           ) : ambientCards.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {ambientCards.map((card) => (

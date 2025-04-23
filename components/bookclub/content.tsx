@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useWeb3 } from "@/lib/web3Context";
 import { getUsernamesByWalletAddresses } from "@/lib/auth/userService";
 import { truncateAddress } from "@/lib/utils";
+import { BookSkeleton } from "@/components/bookclub/BookSkeleton";
 
 interface BookclubData {
   id: number;
@@ -249,8 +250,9 @@ export default function Content({ selectedData }: ContentProps) {
     }
   };
 
-  if (loading)
-    return <div className="text-2xl flex mt-20 ml-10">loading...</div>;
+  if (loading) {
+    return <BookSkeleton />;
+  }
   if (!content)
     return <div className="text-2xl flex mt-20 ml-10">no content</div>;
 

@@ -14,6 +14,7 @@ import { Search } from "lucide-react";
 import { CreateWikiButton } from "./wikiEditor";
 import { useWeb3 } from "@/lib/web3Context";
 import FlipCard from "./FlipCard";
+import { Loading } from "@/components/ui/loading";
 
 interface WikiItem {
   id: string;
@@ -398,7 +399,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
 
           <Button
             type="submit"
-            className="bg-black hover:bg-black/80 rounded-r-md rounded-l-none h-10 border border-l-0 border-black"
+            className="bg-black hover:bg-black/80 rounded-r-md rounded-l-none h-11 border border-l-0 border-black"
             onClick={handleSearch}
           >
             Search
@@ -443,11 +444,7 @@ export default function WikiData({ onViewDetail }: WikiDataProps) {
   );
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#FCFADE] flex justify-center items-center">
-        <p className="text-2xl">Loading...</p>
-      </div>
-    );
+    return <Loading variant="fullPage" />;
   }
   return isClient ? content : content;
 }

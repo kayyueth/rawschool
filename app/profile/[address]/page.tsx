@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { BookOpen, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loading } from "@/components/ui/loading";
 
 interface ProfilePageProps {
   params: {
@@ -123,9 +124,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
           <TabsContent value="bookclub">
             {isLoading ? (
-              <div className="text-center py-8">
-                <p>加载中...</p>
-              </div>
+              <Loading variant="card" count={2} />
             ) : bookclubReviews.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {bookclubReviews.map((review) => (
@@ -149,9 +148,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
           <TabsContent value="ambient">
             {isLoading ? (
-              <div className="text-center py-8">
-                <p>加载中...</p>
-              </div>
+              <Loading variant="card" count={2} />
             ) : ambientCards.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {ambientCards.map((card) => (

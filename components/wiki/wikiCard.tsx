@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import { WikiCard } from "./types";
 import { formatContentWithLinks } from "./textUtils";
+import { Loading } from "@/components/ui/loading";
 
 interface WikiCardProps {
   title: string;
@@ -397,9 +398,7 @@ export default function WikiCardComponent({
   const content = (
     <div className="md:min-h-screen bg-[#FCFADE] md:px-24 px-8 py-12">
       {isLoading ? (
-        <div className="flex justify-center items-center h-[70vh]">
-          <p className="md:text-2xl text-xl">Loading...</p>
-        </div>
+        <Loading variant="inline" className="h-[70vh]" />
       ) : !wikiData ? (
         <div className="flex flex-col justify-center items-center h-[70vh]">
           <p className="md:text-2xl text-xl">No such item found</p>

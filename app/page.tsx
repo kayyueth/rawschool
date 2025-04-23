@@ -15,6 +15,7 @@ import JoinUs from "@/components/join/join-us";
 import WikiHome from "@/components/wiki/wikiHome";
 import WikiData from "@/components/wiki/wikiData";
 import WikiCard from "@/components/wiki/wikiCard";
+import { Loading } from "@/components/ui/loading";
 
 export default function Home() {
   const [selectedBookData, setSelectedBookData] = useState<BookclubData | null>(
@@ -66,7 +67,7 @@ export default function Home() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loading variant="fullPage" />;
   }
 
   return (
