@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 
 interface ConceptCard {
   id: string;
@@ -34,6 +35,30 @@ const flipCardStyles = `
   
   .rotate-y-180 {
     transform: rotateY(180deg);
+  }
+
+  .markdown-content a {
+    color: #0066cc;
+    text-decoration: underline;
+    font-weight: 500;
+  }
+
+  .markdown-content a:hover {
+    color: #004080;
+    text-decoration: none;
+  }
+
+  .markdown-content ul, .markdown-content ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .markdown-content ul {
+    list-style-type: disc;
+  }
+
+  .markdown-content ol {
+    list-style-type: decimal;
   }
 `;
 
@@ -112,9 +137,9 @@ const FlipCard: React.FC<FlipCardProps> = ({ card, onViewDetail }) => {
             <h3 className="md:text-2xl text-xl font-bold border-b-2 border-black pb-2">
               {card.title}
             </h3>
-            <p className="md:text-lg text-sm mt-4 flex-grow">
-              {card.frontContent}
-            </p>
+            <div className="md:text-lg text-sm mt-4 flex-grow overflow-y-auto markdown-content">
+              <ReactMarkdown>{card.frontContent}</ReactMarkdown>
+            </div>
             <div className="mt-4 text-sm text-black/60">
               <button
                 className="bg-black text-white px-4 py-1 rounded hover:bg-black/70 transition-colors"

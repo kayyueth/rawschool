@@ -43,6 +43,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
+    "react-markdown": "^10.1.0",
     "react-p5": "^1.4.1",
     "sonner": "^2.0.1",
     "styled-jsx": "^5.1.6",
