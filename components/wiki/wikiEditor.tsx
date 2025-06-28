@@ -200,7 +200,10 @@ export default function WikiEditor({
       style={{ position: "relative" }}
     >
       <form onSubmit={handleSubmit}>
-        <div className="space-y-6 " style={{ maxHeight: "calc(80vh - 100px)" }}>
+        <div
+          className="space-y-6  overflow-y-auto"
+          style={{ maxHeight: "calc(80vh - 100px)" }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="bookTitle">Book Title / DOI / Website</Label>

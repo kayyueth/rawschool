@@ -428,7 +428,7 @@ export default function Content({ selectedData }: ContentProps) {
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Reviewer</label>
+                      <label className="text-md font-medium">Reviewer</label>
                       <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
                         {account
                           ? reviewerUsernames[account.toLowerCase()] ||
