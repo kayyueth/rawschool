@@ -1,8 +1,17 @@
-export default function Brand() {
+interface BrandProps {
+  onTitleClick?: () => void;
+}
+
+export default function Brand({ onTitleClick }: BrandProps) {
   return (
     <div className="flex justify-between px-2 py-2 md:ml-20 md:mr-20 ml-5 md:px-0 md:py-0">
       <div>
-        <h1 className="font-black text-[20px] md:text-[120px]">RAW SCHOOL</h1>
+        <h1
+          className="font-black text-[20px] md:text-[120px] cursor-pointer hover:opacity-80 transition-opacity duration-200"
+          onClick={onTitleClick}
+        >
+          RAW SCHOOL
+        </h1>
       </div>
       <div>
         <img
