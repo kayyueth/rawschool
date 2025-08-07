@@ -777,6 +777,32 @@ class BookClubStakingService {
     }
   }
 
+  async emergencyUpdateStake(
+    userAddress: string,
+    amount: number,
+    participation: number,
+    refunded: boolean
+  ): Promise<ethers.ContractTransaction> {
+    try {
+      await this.ensureInitialized();
+
+      if (!this.stakingContract) {
+        throw new Error("Staking contract not initialized");
+      }
+
+      const tx = await this.stakingContract.emergencyUpdateStake(
+        userAddress,
+        amount,
+        participation,
+        refunded
+      );
+      return tx;
+    } catch (error) {
+      console.error("Error updating stake:", error);
+      throw this.handleContractError(error);
+    }
+  }
+
   reset() {
     this.isInitialized = false;
     this.stakingContract = null;

@@ -10,7 +10,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BookOpen, Sparkles, Edit2, Coins, Users, Award } from "lucide-react";
+import {
+  BookOpen,
+  Sparkles,
+  Edit2,
+  Coins,
+  Users,
+  Award,
+  Settings,
+} from "lucide-react";
 import {
   fetchWalletBookclubReviews,
   fetchWalletAmbientCards,
@@ -31,6 +39,7 @@ import {
   BookClubContractStats,
   StakerInfo,
 } from "@/lib/services/stakingService";
+import OperationsTab from "./OperationsTab";
 
 interface DisplayReview {
   id: string;
@@ -54,6 +63,7 @@ export default function ProfileView() {
   const [username, setUsername] = useState("");
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState("");
+  const [activeTab, setActiveTab] = useState("bookclub");
 
   // Staking related state
   const [stakeInfo, setStakeInfo] = useState<StakeInfo | null>(null);
@@ -358,7 +368,12 @@ export default function ProfileView() {
         </div>
       </div>
 
-      <Tabs defaultValue="bookclub" className="w-full">
+      <Tabs
+        defaultValue="bookclub"
+        className="w-full space-y-10"
+        value={activeTab}
+        onValueChange={setActiveTab}
+      >
         <TabsList className="mb-4">
           <TabsTrigger value="bookclub" className="flex items-center">
             <BookOpen className="w-4 h-4 mr-2" />
@@ -371,6 +386,10 @@ export default function ProfileView() {
           <TabsTrigger value="staking" className="flex items-center">
             <Users className="w-4 h-4 mr-2" />
             Membership
+          </TabsTrigger>
+          <TabsTrigger value="operations" className="flex items-center">
+            <Settings className="w-4 h-4 mr-2" />
+            Operations
           </TabsTrigger>
         </TabsList>
 
@@ -487,9 +506,9 @@ export default function ProfileView() {
           ) : (
             <div className="space-y-12">
               {/* Main Cards Row */}
-              <div className="grid gap-10 lg:grid-cols-2">
+              <div className="space-y-10">
                 {/* Membership Status Card */}
-                <Card className="border-l-4 border-l-blue-500 h-fit">
+                <Card className="border-l-4 border-l-blue-500">
                   <CardHeader className="pb-6">
                     <CardTitle className="flex items-center gap-3 text-xl">
                       <BookOpen className="h-6 w-6 text-blue-600" />
@@ -619,7 +638,7 @@ export default function ProfileView() {
                 </Card>
 
                 {/* Join/Refund Actions Card */}
-                <Card className="border-l-4 border-l-green-500 h-fit">
+                <Card className="border-l-4 border-l-green-500">
                   <CardHeader className="pb-6">
                     <CardTitle className="flex items-center gap-3 text-xl">
                       {stakeInfo?.isStaked ? (
@@ -901,69 +920,12 @@ export default function ProfileView() {
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Club Statistics - Full Width */}
-              {contractStats && (
-                <Card className="border-l-4 border-l-indigo-500">
-                  <CardHeader className="pb-8">
-                    <CardTitle className="flex items-center gap-3 text-xl">
-                      <Award className="h-6 w-6 text-indigo-600" />
-                      Book Club Community
-                    </CardTitle>
-                    <CardDescription className="text-base">
-                      Our reading community statistics and member activity
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                      <div className="text-center p-8 bg-blue-50 rounded-xl">
-                        <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Users className="h-10 w-10 text-blue-600" />
-                        </div>
-                        <p className="text-4xl font-bold text-blue-600 mb-2">
-                          {contractStats.totalStakers}
-                        </p>
-                        <p className="text-sm text-gray-600">Total Members</p>
-                      </div>
-                      <div className="text-center p-8 bg-green-50 rounded-xl">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <BookOpen className="h-10 w-10 text-green-600" />
-                        </div>
-                        <p className="text-4xl font-bold text-green-600 mb-2">
-                          {contractStats.activeStakers}
-                        </p>
-                        <p className="text-sm text-gray-600">Active Readers</p>
-                      </div>
-                      <div className="text-center p-8 bg-purple-50 rounded-xl">
-                        <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Coins className="h-10 w-10 text-purple-600" />
-                        </div>
-                        <p className="text-4xl font-bold text-purple-600 mb-2">
-                          {parseFloat(contractStats.totalStaked).toFixed(0)}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Total Deposits ({tokenInfo?.symbol || "USDC"})
-                        </p>
-                      </div>
-                      <div className="text-center p-8 bg-orange-50 rounded-xl">
-                        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Award className="h-10 w-10 text-orange-600" />
-                        </div>
-                        <p className="text-4xl font-bold text-orange-600 mb-2">
-                          {parseFloat(
-                            contractStats.totalRewardsDistributed
-                          ).toFixed(0)}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Refunds Claimed ({tokenInfo?.symbol || "USDC"})
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="operations">
+          <OperationsTab isVisible={activeTab === "operations"} />
         </TabsContent>
       </Tabs>
     </div>
