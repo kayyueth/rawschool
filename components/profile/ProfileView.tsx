@@ -72,6 +72,7 @@ export default function ProfileView() {
 
   // Book club specific state
   const [fixedStakeAmount, setFixedStakeAmount] = useState<string>("100");
+  const [customStakeAmount, setCustomStakeAmount] = useState<string>("100");
   const [tokenInfo, setTokenInfo] = useState<{
     symbol: string;
     name: string;
@@ -116,6 +117,7 @@ export default function ProfileView() {
       setContractStats(contractStats);
       setTokenBalance(balance);
       setFixedStakeAmount(stakeAmount);
+      setCustomStakeAmount(stakeAmount); // Set initial custom amount to contract's fixed amount
       setTokenInfo(tokenInfo);
     } catch (error: any) {
       console.error("Failed to fetch staking data:", error);
@@ -141,7 +143,13 @@ export default function ProfileView() {
       return;
     }
 
-    if (parseFloat(fixedStakeAmount) > parseFloat(tokenBalance)) {
+    const stakeAmount = parseFloat(customStakeAmount);
+    if (isNaN(stakeAmount) || stakeAmount <= 0) {
+      toast.error("Please enter a valid deposit amount");
+      return;
+    }
+
+    if (stakeAmount > parseFloat(tokenBalance)) {
       toast.error("Insufficient token balance");
       return;
     }
@@ -151,7 +159,7 @@ export default function ProfileView() {
 
       // Check if approval is needed
       const allowance = await stakingService.checkTokenAllowance(account);
-      if (parseFloat(allowance) < parseFloat(fixedStakeAmount)) {
+      if (parseFloat(allowance) < stakeAmount) {
         toast.loading("Approving tokens...");
         const approveTx = await stakingService.approveTokens();
         await approveTx.wait();
@@ -168,7 +176,7 @@ export default function ProfileView() {
 
       // Refresh data
       await fetchStakingData(account);
-      setStakeAmount("");
+      setCustomStakeAmount(fixedStakeAmount); // Reset to default
     } catch (error: any) {
       console.error("Staking failed:", error);
       toast.dismiss();
@@ -477,31 +485,31 @@ export default function ProfileView() {
               </p>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-12">
               {/* Main Cards Row */}
-              <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-10 lg:grid-cols-2">
                 {/* Membership Status Card */}
                 <Card className="border-l-4 border-l-blue-500 h-fit">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <BookOpen className="h-5 w-5 text-blue-600" />
+                  <CardHeader className="pb-6">
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <BookOpen className="h-6 w-6 text-blue-600" />
                       Membership Status
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-base">
                       Your current book club membership and reading progress
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+                  <CardContent className="space-y-8">
+                    <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
                       <div>
-                        <p className="text-sm text-gray-600">Status</p>
-                        <p className="text-lg font-semibold">
+                        <p className="text-sm text-gray-600 mb-1">Status</p>
+                        <p className="text-xl font-semibold">
                           {stakeInfo?.isStaked ? (
-                            <span className="text-green-600 flex items-center gap-1">
+                            <span className="text-green-600 flex items-center gap-2">
                               ✓ Active Member
                             </span>
                           ) : (
-                            <span className="text-gray-500 flex items-center gap-1">
+                            <span className="text-gray-500 flex items-center gap-2">
                               📖 Not a Member
                             </span>
                           )}
@@ -509,8 +517,8 @@ export default function ProfileView() {
                       </div>
                       {stakeInfo?.isStaked && (
                         <div className="text-right">
-                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                            <span className="text-green-600 text-xl">✓</span>
+                          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                            <span className="text-green-600 text-2xl">✓</span>
                           </div>
                         </div>
                       )}
@@ -518,38 +526,38 @@ export default function ProfileView() {
 
                     {stakeInfo?.isStaked && (
                       <>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="text-center p-4 bg-gray-50 rounded-lg">
-                            <p className="text-2xl font-bold text-blue-600">
+                        <div className="grid grid-cols-2 gap-6">
+                          <div className="text-center p-6 bg-gray-50 rounded-xl">
+                            <p className="text-3xl font-bold text-blue-600 mb-2">
                               {parseFloat(stakeInfo.stakedAmount).toFixed(0)}
                             </p>
-                            <p className="text-xs text-gray-600">
+                            <p className="text-sm text-gray-600">
                               {tokenInfo?.symbol || "USDC"} Committed
                             </p>
                           </div>
-                          <div className="text-center p-4 bg-gray-50 rounded-lg">
-                            <p className="text-2xl font-bold text-green-600">
+                          <div className="text-center p-6 bg-gray-50 rounded-xl">
+                            <p className="text-3xl font-bold text-green-600 mb-2">
                               {stakeInfo.participation}%
                             </p>
-                            <p className="text-xs text-gray-600">
+                            <p className="text-sm text-gray-600">
                               Participation
                             </p>
                           </div>
                         </div>
 
                         {/* Participation Progress Bar */}
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">
+                            <span className="text-gray-600 font-medium">
                               Reading Progress
                             </span>
-                            <span className="font-medium">
+                            <span className="font-semibold">
                               {stakeInfo.participation}%
                             </span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div className="w-full bg-gray-200 rounded-full h-4">
                             <div
-                              className={`h-3 rounded-full transition-all duration-500 ${
+                              className={`h-4 rounded-full transition-all duration-500 ${
                                 stakeInfo.participation >= 80
                                   ? "bg-green-500"
                                   : stakeInfo.participation >= 60
@@ -575,13 +583,13 @@ export default function ProfileView() {
                         </div>
 
                         {/* Refund Information */}
-                        <div className="border-t pt-4">
+                        <div className="border-t pt-6">
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 mb-1">
                                 Deposit Refund
                               </p>
-                              <p className="text-lg font-bold text-blue-600">
+                              <p className="text-xl font-bold text-blue-600">
                                 {parseFloat(stakeInfo.eligibleRefund).toFixed(
                                   2
                                 )}{" "}
@@ -589,7 +597,7 @@ export default function ProfileView() {
                               </p>
                             </div>
                             <div
-                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              className={`px-4 py-2 rounded-full text-sm font-medium ${
                                 stakeInfo.refunded
                                   ? "bg-green-100 text-green-700"
                                   : stakeInfo.participation > 0
@@ -612,73 +620,146 @@ export default function ProfileView() {
 
                 {/* Join/Refund Actions Card */}
                 <Card className="border-l-4 border-l-green-500 h-fit">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                  <CardHeader className="pb-6">
+                    <CardTitle className="flex items-center gap-3 text-xl">
                       {stakeInfo?.isStaked ? (
                         <>
-                          <Award className="h-5 w-5 text-green-600" />
+                          <Award className="h-6 w-6 text-green-600" />
                           Claim Your Deposit
                         </>
                       ) : (
                         <>
-                          <Users className="h-5 w-5 text-blue-600" />
+                          <Users className="h-6 w-6 text-blue-600" />
                           Join Our Book Club
                         </>
                       )}
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-base">
                       {stakeInfo?.isStaked
                         ? "Claim your deposit refund based on participation"
                         : "Join our reading community with a refundable deposit"}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-8">
                     {!stakeInfo?.isStaked ? (
                       <>
                         {/* Join Club Section */}
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                          <div className="flex items-center gap-4 mb-4">
-                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                              <BookOpen className="h-6 w-6 text-blue-600" />
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-xl border border-blue-200">
+                          <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+                              <BookOpen className="h-7 w-7 text-blue-600" />
                             </div>
                             <div>
-                              <h4 className="font-medium text-blue-900 text-lg">
+                              <h4 className="font-medium text-blue-900 text-xl">
                                 Membership Deposit
                               </h4>
                               <p className="text-sm text-blue-700">
-                                Fully refundable based on participation
+                                Choose your deposit amount (fully refundable)
                               </p>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="p-3 bg-white rounded-lg">
+                          <div className="space-y-6">
+                            {/* Balance Display */}
+                            <div className="p-4 bg-white rounded-lg border border-blue-100">
                               <span className="text-blue-600 font-medium">
                                 Your Balance:
                               </span>
-                              <p className="font-bold text-lg">
+                              <p className="font-bold text-xl">
                                 {parseFloat(tokenBalance).toFixed(2)}{" "}
                                 {tokenInfo?.symbol || "USDC"}
                               </p>
                             </div>
-                            <div className="p-3 bg-white rounded-lg">
-                              <span className="text-blue-600 font-medium">
-                                Required:
-                              </span>
-                              <p className="font-bold text-lg">
-                                {fixedStakeAmount} {tokenInfo?.symbol || "USDC"}
+
+                            {/* Deposit Amount Input */}
+                            <div className="space-y-3">
+                              <label className="text-sm font-medium text-gray-700">
+                                Deposit Amount ({tokenInfo?.symbol || "USDC"})
+                              </label>
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="Enter deposit amount"
+                                  value={customStakeAmount}
+                                  onChange={(e) =>
+                                    setCustomStakeAmount(e.target.value)
+                                  }
+                                  className="pr-16 text-lg h-12"
+                                  disabled={isStakingLoading}
+                                />
+                                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                                  {tokenInfo?.symbol || "USDC"}
+                                </span>
+                              </div>
+                              <div className="flex gap-3">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setCustomStakeAmount("50")}
+                                  disabled={isStakingLoading}
+                                  className="text-sm px-4 py-2"
+                                >
+                                  50
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setCustomStakeAmount("100")}
+                                  disabled={isStakingLoading}
+                                  className="text-sm px-4 py-2"
+                                >
+                                  100
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setCustomStakeAmount("200")}
+                                  disabled={isStakingLoading}
+                                  className="text-sm px-4 py-2"
+                                >
+                                  200
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setCustomStakeAmount("500")}
+                                  disabled={isStakingLoading}
+                                  className="text-sm px-4 py-2"
+                                >
+                                  500
+                                </Button>
+                              </div>
+                              <p className="text-xs text-gray-500">
+                                Suggested amounts or enter your own
                               </p>
                             </div>
+
+                            {/* Validation Messages */}
+                            {parseFloat(customStakeAmount) >
+                              parseFloat(tokenBalance) && (
+                              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                ⚠️ Insufficient balance for this amount
+                              </div>
+                            )}
+                            {parseFloat(customStakeAmount) <= 0 &&
+                              customStakeAmount !== "" && (
+                                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
+                                  ⚠️ Please enter a valid amount
+                                </div>
+                              )}
                           </div>
                         </div>
 
                         <Button
                           onClick={handleStake}
-                          className="w-full h-14 text-lg font-medium bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                          className="w-full h-16 text-lg font-medium bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                           disabled={
                             isStakingLoading ||
-                            parseFloat(fixedStakeAmount) >
+                            parseFloat(customStakeAmount) >
                               parseFloat(tokenBalance) ||
+                            parseFloat(customStakeAmount) <= 0 ||
                             !!stakingError
                           }
                         >
@@ -689,13 +770,13 @@ export default function ProfileView() {
                             </div>
                           ) : (
                             <>
-                              📚 Join Book Club ({fixedStakeAmount}{" "}
+                              📚 Join Book Club ({customStakeAmount}{" "}
                               {tokenInfo?.symbol || "USDC"})
                             </>
                           )}
                         </Button>
 
-                        <div className="text-xs text-gray-600 text-center space-y-2">
+                        <div className="text-sm text-gray-600 text-center space-y-3">
                           <p>
                             • Deposit is fully refundable based on your
                             participation
@@ -824,51 +905,51 @@ export default function ProfileView() {
               {/* Club Statistics - Full Width */}
               {contractStats && (
                 <Card className="border-l-4 border-l-indigo-500">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-indigo-600" />
+                  <CardHeader className="pb-8">
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <Award className="h-6 w-6 text-indigo-600" />
                       Book Club Community
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-base">
                       Our reading community statistics and member activity
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      <div className="text-center p-6 bg-blue-50 rounded-lg">
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Users className="h-8 w-8 text-blue-600" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                      <div className="text-center p-8 bg-blue-50 rounded-xl">
+                        <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Users className="h-10 w-10 text-blue-600" />
                         </div>
-                        <p className="text-3xl font-bold text-blue-600">
+                        <p className="text-4xl font-bold text-blue-600 mb-2">
                           {contractStats.totalStakers}
                         </p>
                         <p className="text-sm text-gray-600">Total Members</p>
                       </div>
-                      <div className="text-center p-6 bg-green-50 rounded-lg">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <BookOpen className="h-8 w-8 text-green-600" />
+                      <div className="text-center p-8 bg-green-50 rounded-xl">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <BookOpen className="h-10 w-10 text-green-600" />
                         </div>
-                        <p className="text-3xl font-bold text-green-600">
+                        <p className="text-4xl font-bold text-green-600 mb-2">
                           {contractStats.activeStakers}
                         </p>
                         <p className="text-sm text-gray-600">Active Readers</p>
                       </div>
-                      <div className="text-center p-6 bg-purple-50 rounded-lg">
-                        <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Coins className="h-8 w-8 text-purple-600" />
+                      <div className="text-center p-8 bg-purple-50 rounded-xl">
+                        <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Coins className="h-10 w-10 text-purple-600" />
                         </div>
-                        <p className="text-3xl font-bold text-purple-600">
+                        <p className="text-4xl font-bold text-purple-600 mb-2">
                           {parseFloat(contractStats.totalStaked).toFixed(0)}
                         </p>
                         <p className="text-sm text-gray-600">
                           Total Deposits ({tokenInfo?.symbol || "USDC"})
                         </p>
                       </div>
-                      <div className="text-center p-6 bg-orange-50 rounded-lg">
-                        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Award className="h-8 w-8 text-orange-600" />
+                      <div className="text-center p-8 bg-orange-50 rounded-xl">
+                        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Award className="h-10 w-10 text-orange-600" />
                         </div>
-                        <p className="text-3xl font-bold text-orange-600">
+                        <p className="text-4xl font-bold text-orange-600 mb-2">
                           {parseFloat(
                             contractStats.totalRewardsDistributed
                           ).toFixed(0)}
