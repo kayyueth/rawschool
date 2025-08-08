@@ -159,7 +159,7 @@ function NavSubComponent() {
       </div>
 
       {showProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-start overflow-y-auto pt-16">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9998] flex justify-center items-start overflow-y-auto pt-16">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 relative">
             <button
               onClick={() => setShowProfile(false)}

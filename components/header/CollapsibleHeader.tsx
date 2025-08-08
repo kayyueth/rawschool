@@ -41,12 +41,12 @@ export default function CollapsibleHeader({
   };
 
   return (
-    <div className="sticky top-0 z-50 bg-[#FCFADE]">
+    <div className="fixed top-0 left-0 right-0 z-[9999] bg-[#FCFADE]">
       {/* Toggle Button */}
       <div className="flex justify-center">
         <button
           onClick={toggleHeader}
-          className="flex items-center justify-center w-12 h-6 bg-black text-white rounded-b-lg hover:bg-black/90 transition-all duration-200 z-10 shadow-lg hover:shadow-xl transform hover:scale-105"
+          className="flex items-center justify-center w-12 h-6 bg-black text-white rounded-b-lg hover:bg-black/90 transition-all duration-200 z-[10000] shadow-lg hover:shadow-xl transform hover:scale-105"
           aria-label={isCollapsed ? "Expand header" : "Collapse header"}
         >
           {isCollapsed ? (
@@ -60,9 +60,7 @@ export default function CollapsibleHeader({
       {/* Header Content */}
       <div
         className={`overflow-hidden transition-all duration-500 ease-in-out ${
-          isCollapsed
-            ? "max-h-0 opacity-0 transform -translate-y-2"
-            : "max-h-[400px] opacity-100 transform translate-y-0"
+          isCollapsed ? "max-h-0 opacity-0" : "max-h-[400px] opacity-100"
         }`}
         style={{
           maxHeight: isCollapsed ? "0px" : "400px",

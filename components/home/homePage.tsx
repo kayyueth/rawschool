@@ -13,7 +13,7 @@ export default function HomePage({
   isHeaderCollapsed = false,
 }: HomePageProps) {
   return (
-    <div className="px-4 py-12 md:ml-20 md:mr-20">
+    <div className="px-4 md:ml-20 md:mr-20">
       <div className="">
         {/* Current Semester Information */}
         <div className="space-y-6 text-xl">
