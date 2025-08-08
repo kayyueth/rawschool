@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Center from "./center";
 import Dot from "./dot";
 import Line from "./line";
@@ -17,7 +17,7 @@ interface ClockProps {
 const CLOCK_SIZE = 750; // 时钟的固定尺寸 (px)
 const BASE_RADIUS = CLOCK_SIZE * 0.07; // 计算基础半径
 
-export default function Clock({ onDataSelect, monthData }: ClockProps) {
+function ClockComponent({ onDataSelect, monthData }: ClockProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   // 获取相同月份的所有索引
@@ -91,4 +91,25 @@ export default function Clock({ onDataSelect, monthData }: ClockProps) {
       </div>
     </div>
   );
+}
+
+// Client-side only wrapper to prevent hydration issues
+export default function Clock({ onDataSelect, monthData }: ClockProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="relative min-w-[750px] min-h-[750px] w-[750px] h-[750px] mx-auto hidden md:block">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-gray-500">Loading clock...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return <ClockComponent onDataSelect={onDataSelect} monthData={monthData} />;
 }

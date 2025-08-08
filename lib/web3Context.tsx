@@ -42,9 +42,14 @@ const Web3Context = createContext<Web3ContextType>({
 });
 
 // 创建钩子，方便使用上下文
-export const useWeb3 = () => useContext(Web3Context);
+export const useWeb3 = () => {
+  const context = useContext(Web3Context);
+  if (context === undefined) {
+    throw new Error("useWeb3 must be used within a Web3Provider");
+  }
+  return context;
+};
 
-// 定义Provider属性
 interface Web3ProviderProps {
   children: ReactNode;
 }
@@ -57,13 +62,21 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const lastConnectionAttemptRef = useRef<number>(0);
   const CONNECTION_COOLDOWN_MS = 2000; // 2 seconds cooldown between connection attempts
+
+  // Set isClient to true after hydration
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // 检查是否有可用的以太坊提供者
   const checkEthereumProvider = (): boolean => {
     return (
-      typeof window !== "undefined" && typeof window.ethereum !== "undefined"
+      isClient &&
+      typeof window !== "undefined" &&
+      typeof window.ethereum !== "undefined"
     );
   };
 
@@ -89,8 +102,17 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
 
       // 如果用户不存在，创建新用户
       if (findError && findError.code === "PGRST116") {
-        // 生成随机 nonce
-        const nonce = Math.floor(Math.random() * 1000000).toString();
+        // 使用API路由生成nonce，避免客户端随机数导致的水合问题
+        let nonce: string;
+        try {
+          const response = await fetch("/api/auth/generate-nonce");
+          const { data: nonceData } = await response.json();
+          nonce =
+            nonceData?.nonce || Math.floor(Math.random() * 1000000).toString();
+        } catch (error) {
+          // Fallback to client-side generation if API fails
+          nonce = Math.floor(Math.random() * 1000000).toString();
+        }
 
         // 创建新用户
         const { data: newUser, error: createError } = await supabase
@@ -122,6 +144,28 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
         error as unknown as Record<string, unknown>
       );
       return null;
+    }
+  };
+
+  // 认证钱包
+  const authenticateWallet = async (): Promise<boolean> => {
+    if (!account) {
+      logger.warn("没有连接的钱包账户");
+      return false;
+    }
+
+    try {
+      const userData = await getOrCreateUser(account);
+      if (userData) {
+        setIsAuthenticated(true);
+        setUser(userData);
+        logger.info("钱包认证成功", { address: account });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      logger.error("钱包认证失败", error as unknown as Record<string, unknown>);
+      return false;
     }
   };
 
@@ -162,7 +206,11 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
         const walletAddress = accounts[0];
         setAccount(walletAddress);
         setIsConnected(true);
-        localStorage.setItem("walletAddress", walletAddress);
+
+        // Only use localStorage on client side
+        if (isClient) {
+          localStorage.setItem("walletAddress", walletAddress);
+        }
 
         // 获取或创建用户
         const userData = await getOrCreateUser(walletAddress);
@@ -173,65 +221,11 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
         }
       }
     } catch (err) {
-      const errorMsg = "连接钱包失败";
-
-      // Handle specific MetaMask errors
-      if (typeof err === "object" && err !== null) {
-        const error = err as any;
-
-        // Handle the "Already processing" error specifically
-        if (error.code === -32002) {
-          setError("MetaMask 正在处理请求，请等待或刷新页面后重试");
-          logger.warn(
-            "MetaMask 正在处理请求",
-            error as unknown as Record<string, unknown>
-          );
-          return;
-        }
-
-        // Handle user rejected request
-        if (error.code === 4001) {
-          setError("用户拒绝了连接请求");
-          logger.warn(
-            "用户拒绝了连接请求",
-            error as unknown as Record<string, unknown>
-          );
-          return;
-        }
-      }
-
-      logger.error(errorMsg, err as unknown as Record<string, unknown>);
-      setError(errorMsg);
+      const errorMessage = err instanceof Error ? err.message : "连接钱包失败";
+      setError(errorMessage);
+      logger.error("连接钱包失败", err as unknown as Record<string, unknown>);
     } finally {
       setIsConnecting(false);
-    }
-  };
-
-  // 认证钱包与后端
-  const authenticateWallet = async (): Promise<boolean> => {
-    if (!account) {
-      const errorMsg = "请先连接钱包";
-      setError(errorMsg);
-      logger.warn(errorMsg);
-      return false;
-    }
-
-    try {
-      // 获取或创建用户
-      const userData = await getOrCreateUser(account);
-      if (userData) {
-        setIsAuthenticated(true);
-        setUser(userData);
-        logger.info("钱包认证成功", { address: account });
-        return true;
-      }
-
-      return false;
-    } catch (err) {
-      const errorMsg = "钱包认证失败";
-      logger.error(errorMsg, err as unknown as Record<string, unknown>);
-      setError(errorMsg);
-      return false;
     }
   };
 
@@ -242,7 +236,12 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       setIsConnected(false);
       setIsAuthenticated(false);
       setUser(null);
-      localStorage.removeItem("walletAddress");
+
+      // Only use localStorage on client side
+      if (isClient) {
+        localStorage.removeItem("walletAddress");
+      }
+
       logger.info("钱包断开连接");
     } catch (err) {
       logger.error(
@@ -254,6 +253,8 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
 
   // 初始化：检查本地存储中的钱包地址
   useEffect(() => {
+    if (!isClient) return; // Skip on server side
+
     const initWallet = async () => {
       // Skip initialization if already connecting
       if (isConnecting) {
@@ -307,44 +308,44 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
     };
 
     initWallet();
-  }, []);
+  }, [isClient]);
 
   // 监听账户变化
   useEffect(() => {
-    if (checkEthereumProvider()) {
-      const handleAccountsChanged = async (accounts: string[]) => {
-        if (accounts.length === 0) {
-          // 用户断开了所有账户
-          await disconnectWallet();
-        } else if (accounts[0] !== account) {
-          // 用户切换了账户
-          setAccount(accounts[0]);
-          localStorage.setItem("walletAddress", accounts[0]);
+    if (!isClient || !checkEthereumProvider()) return;
 
-          // 获取新账户的用户数据
-          const userData = await getOrCreateUser(accounts[0]);
-          if (userData) {
-            setIsAuthenticated(true);
-            setUser(userData);
-            logger.info("切换钱包账户", { address: accounts[0] });
-          }
+    const handleAccountsChanged = async (accounts: string[]) => {
+      if (accounts.length === 0) {
+        // 用户断开了所有账户
+        await disconnectWallet();
+      } else if (accounts[0] !== account) {
+        // 用户切换了账户
+        setAccount(accounts[0]);
+        localStorage.setItem("walletAddress", accounts[0]);
+
+        // 获取新账户的用户数据
+        const userData = await getOrCreateUser(accounts[0]);
+        if (userData) {
+          setIsAuthenticated(true);
+          setUser(userData);
+          logger.info("切换钱包账户", { address: accounts[0] });
         }
-      };
+      }
+    };
 
-      // 添加事件监听器
-      window.ethereum?.on("accountsChanged", handleAccountsChanged);
+    // 添加事件监听器
+    window.ethereum?.on("accountsChanged", handleAccountsChanged);
 
-      // 清理函数
-      return () => {
-        if (window.ethereum?.removeListener) {
-          window.ethereum.removeListener(
-            "accountsChanged",
-            handleAccountsChanged
-          );
-        }
-      };
-    }
-  }, [account]);
+    // 清理函数
+    return () => {
+      if (window.ethereum?.removeListener) {
+        window.ethereum.removeListener(
+          "accountsChanged",
+          handleAccountsChanged
+        );
+      }
+    };
+  }, [account, isClient]);
 
   return (
     <Web3Context.Provider

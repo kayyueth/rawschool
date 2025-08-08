@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Brand from "../components/header/brand";
 import NavSub from "../components/header/navSub";
 import NavMain from "../components/header/navMain";
@@ -14,11 +13,12 @@ import WikiHome from "@/components/wiki/wikiHome";
 import WikiData from "@/components/wiki/wikiData";
 import WikiCard from "@/components/wiki/wikiCard";
 import { Loading } from "@/components/ui/loading";
+import HomePage from "@/components/home/homePage";
 import { useState, useEffect } from "react";
 import { BookclubData } from "@/types/bookclub";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function Home() {
+function HomeComponent() {
   const [currentView, setCurrentView] = useState<
     "home" | "bookclub" | "join" | "wiki" | "wikiData" | "wikiDetail"
   >("home");
@@ -204,44 +204,27 @@ export default function Home() {
         )
       ) : (
         // Default home page - completely independent
-        <div className="flex items-center justify-center px-4 py-12">
-          <div className="max-w-2xl mx-auto text-center space-y-8">
-            {/* Current Semester Information */}
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-6xl font-bold text-black tracking-wide">
-                PEER TO PEER
-              </h1>
-
-              <div className="space-y-4">
-                <h2 className="text-2xl md:text-3xl font-semibold text-black">
-                  The Commons Manifesto
-                </h2>
-
-                <p className="text-lg md:text-xl text-black/80">
-                  Michel Bauwens, Vasilis Kostakis, and
-                  <br />
-                  Alex Pazaitis
-                </p>
-
-                <p className="text-xl md:text-2xl font-medium text-black mt-6">
-                  Sept 1 - Sept 30, 2025
-                </p>
-              </div>
-            </div>
-
-            {/* Apply Button */}
-            <div className="pt-8">
-              <Button
-                onClick={handleApply}
-                size="lg"
-                className="text-lg px-12 py-6 h-auto bg-black text-white hover:bg-black/90 transition-all duration-200 transform hover:scale-105"
-              >
-                Apply
-              </Button>
-            </div>
-          </div>
-        </div>
+        <HomePage onApply={handleApply} />
       )}
     </div>
   );
+}
+
+// Client-side only wrapper to prevent hydration issues
+export default function Home() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-[#FCFADE] flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  return <HomeComponent />;
 }

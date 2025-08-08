@@ -7,7 +7,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import ProfileView from "@/components/profile/ProfileView";
 
-export default function NavSub() {
+function NavSubComponent() {
   const {
     account,
     isConnecting,
@@ -186,4 +186,36 @@ export default function NavSub() {
       )}
     </div>
   );
+}
+
+// Client-side only wrapper to prevent hydration issues
+export default function NavSub() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="flex justify-between items-center py-4 px-6 bg-black md:ml-20 md:mr-20 h-8 md:h-16">
+        <div className="flex items-center">
+          <div className="flex items-center">
+            <Globe className="text-[#FCFADE] w-4 h-4 md:w-6 md:h-6 mr-2" />
+            <span className="text-[#FCFADE] font-semibold text-xs md:text-lg">
+              English
+            </span>
+          </div>
+        </div>
+        <div className="relative">
+          <div className="flex text-[#FCFADE] font-semibold text-xs md:text-lg">
+            <Link2 className="w-4 h-4 md:w-6 md:h-6 mr-2 md:mt-1" />
+            Connect Wallet
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <NavSubComponent />;
 }

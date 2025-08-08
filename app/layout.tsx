@@ -4,7 +4,7 @@ import { Roboto } from "next/font/google";
 import { Web3Provider } from "@/lib/web3Context";
 import { LanguageProvider } from "@/lib/languageContext";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@/components/theme-provider";
 import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/seo/JsonLd";
 
 const roboto = Roboto({
