@@ -1,0 +1,12 @@
+.text-block {
+  display: inline;
+}
+
+.text-block p {
+  margin: 0;
+  display: inline;
+}
+
+.char {
+  display: inline-block;
+}
