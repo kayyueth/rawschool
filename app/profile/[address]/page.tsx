@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Brand from "@/components/header/brand";
-import NavSub from "@/components/header/navSub";
-import NavMain from "@/components/header/navMain";
+import CollapsibleHeader from "@/components/header/CollapsibleHeader";
 import { useRouter } from "next/navigation";
 import { useWeb3 } from "@/lib/web3Context";
 import { BookclubReview, AmbientCard } from "@/types";
@@ -87,12 +85,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div className="min-h-screen bg-[#FCFADE]">
-      {/* Nav Bar */}
-      <div className="sticky top-0 z-50 bg-[#FCFADE]">
-        <Brand />
-        <NavSub />
-        <NavMain onViewChange={handleViewChange} />
-      </div>
+      {/* Collapsible Header */}
+      <CollapsibleHeader onViewChange={handleViewChange} />
 
       {/* Profile Content */}
       <div className="container mx-auto px-4 py-8">

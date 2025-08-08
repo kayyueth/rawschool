@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 
 interface HomePageProps {
   onApply: () => void;
+  isHeaderCollapsed?: boolean;
 }
 
-export default function HomePage({ onApply }: HomePageProps) {
+export default function HomePage({
+  onApply,
+  isHeaderCollapsed = false,
+}: HomePageProps) {
   return (
     <div className="px-4 py-12 md:ml-20 md:mr-20">
       <div className="">
@@ -20,9 +24,15 @@ export default function HomePage({ onApply }: HomePageProps) {
               </h3>
               <p className="text-xl md:text-2xl self-end mt-6">20h/21h</p>
             </div>
-            <p className="text-lg md:text-2xl text-black/80 text-right">
-              Presented by <br /> Uncommons Bookclub Series
-            </p>
+            {isHeaderCollapsed ? (
+              <div className="flex items-center">
+                <img
+                  src="/Logo.svg"
+                  alt="Logo"
+                  className="h-20 md:h-20 w-auto"
+                />
+              </div>
+            ) : null}
           </div>
 
           {/*Authors*/}

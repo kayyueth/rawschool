@@ -1,8 +1,6 @@
 "use client";
 
-import Brand from "../components/header/brand";
-import NavSub from "../components/header/navSub";
-import NavMain from "../components/header/navMain";
+import CollapsibleHeader from "../components/header/CollapsibleHeader";
 import Clock from "@/components/clock/clock";
 import Content from "@/components/bookclub/content";
 import Label from "../components/bookclub/label";
@@ -23,6 +21,7 @@ function HomeComponent() {
     "home" | "bookclub" | "join" | "wiki" | "wikiData" | "wikiDetail"
   >("home");
   const [selectedWikiTitle, setSelectedWikiTitle] = useState<string>("");
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(true); // Default to collapsed
 
   // Bookclub-specific state
   const [selectedBookData, setSelectedBookData] = useState<BookclubData | null>(
@@ -117,14 +116,19 @@ function HomeComponent() {
     }
   };
 
+  // Handle header collapsed state change
+  const handleHeaderCollapsedChange = (isCollapsed: boolean) => {
+    setIsHeaderCollapsed(isCollapsed);
+  };
+
   return (
     <div className="min-h-screen bg-[#FCFADE]">
-      {/* Nav Bar */}
-      <div className="sticky top-0 z-50 bg-[#FCFADE]">
-        <Brand onTitleClick={handleReturnHome} />
-        <NavSub />
-        <NavMain onViewChange={handleNavChange} />
-      </div>
+      {/* Collapsible Header */}
+      <CollapsibleHeader
+        onViewChange={handleNavChange}
+        onTitleClick={handleReturnHome}
+        onCollapsedChange={handleHeaderCollapsedChange}
+      />
 
       {/* Main Content */}
       {currentView === "join" ? (
@@ -204,7 +208,7 @@ function HomeComponent() {
         )
       ) : (
         // Default home page - completely independent
-        <HomePage onApply={handleApply} />
+        <HomePage onApply={handleApply} isHeaderCollapsed={isHeaderCollapsed} />
       )}
     </div>
   );
