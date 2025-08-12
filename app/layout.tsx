@@ -6,6 +6,7 @@ import { LanguageProvider } from "@/lib/languageContext";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { OrganizationJsonLd, WebsiteJsonLd } from "@/components/seo/JsonLd";
+import { AuthProvider } from "@/lib/auth/AuthContext";
 
 const roboto = Roboto({
   weight: ["400", "700"],
@@ -97,8 +98,10 @@ export default function RootLayout({
               enableSystem={false}
               disableTransitionOnChange
             >
-              {children}
-              <Toaster position="top-center" />
+              <AuthProvider>
+                {children}
+                <Toaster position="top-center" />
+              </AuthProvider>
             </ThemeProvider>
           </LanguageProvider>
         </Web3Provider>

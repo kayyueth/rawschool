@@ -1,25 +1,20 @@
 "use client";
 
-import { Globe, Link2, LogOut, User, ScanFace } from "lucide-react";
+import { Globe, LogOut, User, ScanFace } from "lucide-react";
 import { useWeb3 } from "@/lib/web3Context";
 import { useLanguage } from "@/lib/languageContext";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import ProfileView from "@/components/profile/ProfileView";
+import AuthModal from "@/components/auth/AuthModal";
 
 function NavSubComponent() {
-  const {
-    account,
-    isConnecting,
-    isConnected,
-    error,
-    connectWallet,
-    disconnectWallet,
-  } = useWeb3();
+  const { account, isConnecting, isConnected, error, disconnectWallet } =
+    useWeb3();
   const { language, setLanguage, t } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Format address to show only first 6 and last 4 characters
@@ -56,30 +51,6 @@ function NavSubComponent() {
     setLanguage(language === "en" ? "zh" : "en");
   };
 
-  // 处理连接钱包
-  const handleConnectWallet = useCallback(async () => {
-    if (isButtonDisabled || isConnecting) return;
-
-    setIsButtonDisabled(true);
-    try {
-      await connectWallet();
-      if (!error) {
-        toast.success(t("wallet.connected.success"));
-      } else {
-        toast.error(error);
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : t("failed.connect.wallet");
-      toast.error(errorMessage);
-    } finally {
-      // Add a small delay before enabling the button again
-      setTimeout(() => {
-        setIsButtonDisabled(false);
-      }, 1000);
-    }
-  }, [connectWallet, error, isButtonDisabled, isConnecting, t]);
-
   // 处理断开连接
   const handleDisconnect = async () => {
     try {
@@ -107,14 +78,15 @@ function NavSubComponent() {
 
       <div className="relative">
         {!isConnected ? (
-          <button
-            onClick={handleConnectWallet}
-            className="flex text-[#FCFADE] font-semibold text-xs md:text-lg hover:text-gray-300 transition-colors"
-            disabled={isConnecting || isButtonDisabled}
-          >
-            <Link2 className="w-4 h-4 md:w-6 md:h-6 mr-2 md:mt-1" />
-            {isConnecting ? t("connecting") : t("connect.wallet")}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowAuth(true)}
+              className="flex text-[#FCFADE] font-semibold text-xs md:text-lg hover:text-gray-300 transition-colors"
+            >
+              <ScanFace className="w-4 h-4 md:w-6 md:h-6 mr-2 md:mt-1" />
+              {t("Login In")}
+            </button>
+          </div>
         ) : (
           <div className="flex items-center">
             <span className="text-[#FCFADE] text-sm mr-2">
@@ -159,7 +131,7 @@ function NavSubComponent() {
       </div>
 
       {showProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9998] flex justify-center items-start overflow-y-auto pt-16">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[10000] flex justify-center items-start overflow-y-auto pt-16">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 relative">
             <button
               onClick={() => setShowProfile(false)}
@@ -184,6 +156,10 @@ function NavSubComponent() {
           </div>
         </div>
       )}
+
+      {showAuth && (
+        <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
+      )}
     </div>
   );
 }
@@ -191,10 +167,31 @@ function NavSubComponent() {
 // Client-side only wrapper to prevent hydration issues
 export default function NavSub() {
   const [isClient, setIsClient] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuRef]);
+
+  // Toggle dropdown menu
+  const toggleMenu = () => {
+    setShowMenu(!showMenu);
+  };
 
   if (!isClient) {
     return (
@@ -208,10 +205,13 @@ export default function NavSub() {
           </div>
         </div>
         <div className="relative">
-          <div className="flex text-[#FCFADE] font-semibold text-xs md:text-lg">
-            <Link2 className="w-4 h-4 md:w-6 md:h-6 mr-2 md:mt-1" />
-            Connect Wallet
-          </div>
+          <button
+            onClick={toggleMenu}
+            className="flex text-[#FCFADE] font-semibold text-xs md:text-lg hover:text-gray-300 transition-colors"
+          >
+            <ScanFace className="w-4 h-4 md:w-6 md:h-6 mr-2 md:mt-1" />
+            Login In
+          </button>
         </div>
       </div>
     );

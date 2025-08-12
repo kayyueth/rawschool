@@ -4,7 +4,7 @@ import { logger } from "../logger";
 /**
  * 创建成功响应
  */
-export function createSuccessResponse(data: any, status = 200) {
+export function createSuccessResponse(data: unknown, status = 200) {
   return NextResponse.json(data, { status });
 }
 
@@ -19,12 +19,16 @@ export function createErrorResponse(message: string, status = 400) {
  * 处理API错误
  */
 export function handleApiError(
-  error: any,
+  error: unknown,
   errorMessage: string,
   logContext?: string
 ) {
-  logger.error(`${logContext || "API错误"}: ${errorMessage}`, error);
-  return createErrorResponse("服务器错误", 500);
+  const err = error instanceof Error ? error : new Error(String(error));
+  const context = logContext ? `[${logContext}]` : "";
+  logger.error(`${context} ${errorMessage}: ${err.message}`, {
+    stack: err.stack,
+  });
+  return createErrorResponse("Internal Server Error", 500);
 }
 
 /**

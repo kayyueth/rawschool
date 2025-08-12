@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { getOrCreateUser, createSignMessage } from "@/lib/auth/authService";
+import { createSignMessage } from "@/lib/auth/authService";
+import { getOrCreateUser } from "@/lib/auth/userService";
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -26,8 +27,12 @@ export async function POST(request: NextRequest) {
         return createErrorResponse("创建用户失败", 500);
       }
 
+      if (!user.nonce) {
+        return createErrorResponse("缺少用户nonce", 500);
+      }
+
       // 创建签名消息
-      const message = createSignMessage(wallet_address, user.nonce);
+      const message = await createSignMessage(wallet_address, user.nonce);
 
       // 返回挑战
       return createSuccessResponse({
