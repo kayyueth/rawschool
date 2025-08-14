@@ -19,8 +19,6 @@ import {
   Lock,
   User,
   Wallet,
-  Github,
-  Chrome,
   MessageCircle,
   Eye,
   EyeOff,
@@ -93,6 +91,12 @@ export default function AuthModal({
     }
 
     try {
+      console.log("Sending registration request:", {
+        email: registerForm.email,
+        username: registerForm.username,
+        password: registerForm.password ? "present" : "missing",
+      });
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,7 +104,6 @@ export default function AuthModal({
           email: registerForm.email,
           password: registerForm.password,
           username: registerForm.username,
-          display_name: registerForm.displayName,
         }),
       });
 
@@ -123,19 +126,6 @@ export default function AuthModal({
       }
     } catch (error) {
       toast.error("Registration failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSocialLogin = async (provider: string) => {
-    setIsLoading(true);
-
-    try {
-      // TODO: Implement social login
-      toast.info(`${provider} login coming soon!`);
-    } catch (error) {
-      toast.error(`${provider} login failed`);
     } finally {
       setIsLoading(false);
     }
@@ -243,25 +233,6 @@ export default function AuthModal({
                   Or continue with
                 </span>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                onClick={() => handleSocialLogin("google")}
-                disabled={isLoading}
-              >
-                <Chrome className="mr-2 h-4 w-4" />
-                Google
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleSocialLogin("github")}
-                disabled={isLoading}
-              >
-                <Github className="mr-2 h-4 w-4" />
-                GitHub
-              </Button>
             </div>
           </TabsContent>
 

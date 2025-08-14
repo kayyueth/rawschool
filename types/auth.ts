@@ -2,14 +2,13 @@
 export interface User {
   id: string;
 
+  // 邮箱认证字段
+  email?: string;
+  password_hash?: string;
+
   // 钱包认证字段
   wallet_address?: string;
   nonce?: string;
-
-  // 社交认证字段
-  social_provider?: string;
-  social_id?: string;
-  social_email?: string;
 
   // 用户信息字段
   username?: string;
@@ -30,16 +29,13 @@ export interface Session {
   id: string;
   user_id: string;
   token: string;
-  auth_method: "email" | "wallet" | "social";
+  auth_method: "email" | "wallet";
   expires_at: string;
   created_at: string;
 }
 
 // 认证方法类型
-export type AuthMethod = "email" | "wallet" | "social";
-
-// 社交提供商类型
-export type SocialProvider = "google" | "github" | "discord" | "twitter";
+export type AuthMethod = "email" | "wallet";
 
 // 传统认证请求类型
 export interface EmailAuthRequest {
@@ -51,18 +47,8 @@ export interface EmailAuthRequest {
 export interface RegisterRequest {
   username?: string;
   wallet_address?: string;
-}
-
-// 社交认证请求类型
-export interface SocialAuthRequest {
-  provider: SocialProvider;
-  access_token: string;
-  user_data?: {
-    id: string;
-    email?: string;
-    name?: string;
-    avatar_url?: string;
-  };
+  email?: string;
+  password?: string;
 }
 
 // 钱包认证请求类型

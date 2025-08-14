@@ -11,7 +11,6 @@ import {
   AuthMethod,
   EmailAuthRequest,
   RegisterRequest,
-  SocialAuthRequest,
   WalletAuthRequest,
   PasswordResetRequest,
   PasswordResetConfirm,
@@ -217,6 +216,96 @@ export async function registerUser(
   }
 }
 
+// 邮箱认证 - 注册
+export async function registerUserWithEmail(data: {
+  email: string;
+  password: string;
+  username: string;
+}): Promise<{ user: User | null; error: string | null }> {
+  try {
+    console.log("registerUserWithEmail called with:", {
+      email: data.email,
+      username: data.username,
+    });
+
+    // 检查邮箱是否已存在
+    const { data: existingUser, error: emailCheckError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", data.email)
+      .single();
+
+    if (existingUser) {
+      console.log("Email already exists:", data.email);
+      return { user: null, error: "Email already registered" };
+    }
+
+    if (emailCheckError && emailCheckError.code !== "PGRST116") {
+      console.log("Email check error:", emailCheckError);
+      logger.error("Email check error:", emailCheckError);
+    }
+
+    // 检查用户名是否已存在
+    const { data: existingUsername, error: usernameCheckError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("username", data.username)
+      .single();
+
+    if (existingUsername) {
+      console.log("Username already exists:", data.username);
+      return { user: null, error: "Username already taken" };
+    }
+
+    if (usernameCheckError && usernameCheckError.code !== "PGRST116") {
+      console.log("Username check error:", usernameCheckError);
+      logger.error("Username check error:", usernameCheckError);
+    }
+
+    // 加密密码
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(data.password, saltRounds);
+
+    // 生成邮箱验证令牌
+    const emailVerificationToken = uuidv4();
+
+    // 创建用户
+    console.log("Attempting to create user in database");
+    const { data: user, error } = await supabase
+      .from("users")
+      .insert([
+        {
+          email: data.email,
+          password_hash: passwordHash,
+          username: data.username,
+          email_verification_token: emailVerificationToken,
+          email_verified: false,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.log("Database insert error:", error);
+      logger.error("注册用户失败", error);
+      return { user: null, error: "Failed to create user" };
+    }
+
+    // 发送验证邮件
+    try {
+      await sendEmailVerification(data.email, emailVerificationToken);
+    } catch (emailError) {
+      logger.error("发送验证邮件失败", emailError);
+      // 不阻止注册，但记录错误
+    }
+
+    return { user: user as User, error: null };
+  } catch (error) {
+    logger.error("注册用户失败", error);
+    return { user: null, error: "Registration failed" };
+  }
+}
+
 // 传统认证 - 登录
 export async function loginWithEmail(data: EmailAuthRequest): Promise<{
   user: User | null;
@@ -269,81 +358,6 @@ export async function loginWithEmail(data: EmailAuthRequest): Promise<{
   } catch (error) {
     logger.error("邮箱登录失败", error);
     return { user: null, session: null, error: "Login failed" };
-  }
-}
-
-// 社交认证
-export async function loginWithSocial(data: SocialAuthRequest): Promise<{
-  user: User | null;
-  session: Session | null;
-  error: string | null;
-}> {
-  try {
-    // 查找现有用户
-    const { data: existingUser, error: findError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("social_provider", data.provider)
-      .eq("social_id", data.user_data?.id)
-      .single();
-
-    let user: User;
-
-    if (existingUser) {
-      // 用户存在，更新信息
-      const { data: updatedUser, error: updateError } = await supabase
-        .from("users")
-        .update({
-          social_email: data.user_data?.email,
-          display_name: data.user_data?.name,
-          avatar_url: data.user_data?.avatar_url,
-          last_login_at: new Date().toISOString(),
-        })
-        .eq("id", existingUser.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        logger.error("更新社交用户失败", updateError);
-        return { user: null, session: null, error: "Failed to update user" };
-      }
-
-      user = updatedUser as User;
-    } else {
-      // 创建新用户
-      const { data: newUser, error: createError } = await supabase
-        .from("users")
-        .insert([
-          {
-            social_provider: data.provider,
-            social_id: data.user_data?.id,
-            social_email: data.user_data?.email,
-            display_name: data.user_data?.name,
-            avatar_url: data.user_data?.avatar_url,
-            email_verified: true, // 社交登录默认已验证邮箱
-          },
-        ])
-        .select()
-        .single();
-
-      if (createError) {
-        logger.error("创建社交用户失败", createError);
-        return { user: null, session: null, error: "Failed to create user" };
-      }
-
-      user = newUser as User;
-    }
-
-    // 创建会话
-    const session = await createSession(user.id, "social");
-    if (!session) {
-      return { user: null, session: null, error: "Failed to create session" };
-    }
-
-    return { user, session, error: null };
-  } catch (error) {
-    logger.error("社交登录失败", error);
-    return { user: null, session: null, error: "Social login failed" };
   }
 }
 

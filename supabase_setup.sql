@@ -1,7 +1,7 @@
--- 创建users表 - 支持多种认证方式
+-- 创建users表 - 支持邮箱和钱包认证
 CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  -- 传统认证字段
+  -- 邮箱认证字段
   email TEXT UNIQUE,
   password_hash TEXT,
   email_verified BOOLEAN DEFAULT FALSE,
@@ -13,14 +13,8 @@ CREATE TABLE IF NOT EXISTS public.users (
   wallet_address TEXT UNIQUE,
   nonce TEXT,
   
-  -- 社交认证字段
-  social_provider TEXT, -- 'google', 'github', 'discord', etc.
-  social_id TEXT,
-  social_email TEXT,
-  
   -- 用户信息字段
   username TEXT UNIQUE,
-  display_name TEXT,
   avatar_url TEXT,
   bio TEXT,
   
@@ -34,7 +28,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   
   -- 约束：至少有一种认证方式
   CONSTRAINT at_least_one_auth_method CHECK (
-    email IS NOT NULL OR wallet_address IS NOT NULL OR (social_provider IS NOT NULL AND social_id IS NOT NULL)
+    email IS NOT NULL OR wallet_address IS NOT NULL
   )
 );
 
@@ -43,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   token TEXT NOT NULL UNIQUE,
-  auth_method TEXT NOT NULL, -- 'email', 'wallet', 'social'
+  auth_method TEXT NOT NULL, -- 'email', 'wallet'
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -74,7 +68,6 @@ CREATE TABLE IF NOT EXISTS public.ambient_cards (
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON public.users(wallet_address);
-CREATE INDEX IF NOT EXISTS idx_users_social ON public.users(social_provider, social_id);
 CREATE INDEX IF NOT EXISTS idx_users_username ON public.users(username);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON public.sessions(token);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON public.sessions(user_id);
