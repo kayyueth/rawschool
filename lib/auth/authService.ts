@@ -19,6 +19,11 @@ import {
 } from "@/types/auth";
 import { setCookie, deleteCookie, getCookie } from "./cookieUtils";
 import { getOrCreateUser as getUserFromService } from "./userService";
+import {
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  sendWelcomeEmail,
+} from "../services/emailService";
 
 // 创建签名消息
 export async function createSignMessage(
@@ -153,20 +158,22 @@ export async function deleteSession(token: string): Promise<boolean> {
   }
 }
 
-// 传统认证 - 注册
+// 钱包认证 - 注册
 export async function registerUser(
   data: RegisterRequest
 ): Promise<{ user: User | null; error: string | null }> {
   try {
-    // 检查邮箱是否已存在
-    const { data: existingUser } = await supabase
-      .from("users")
-      .select("id")
-      .eq("email", data.email)
-      .single();
+    // 检查钱包地址是否已存在
+    if (data.wallet_address) {
+      const { data: existingUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("wallet_address", data.wallet_address)
+        .single();
 
-    if (existingUser) {
-      return { user: null, error: "Email already registered" };
+      if (existingUser) {
+        return { user: null, error: "Wallet address already registered" };
+      }
     }
 
     // 检查用户名是否已存在
@@ -182,23 +189,17 @@ export async function registerUser(
       }
     }
 
-    // 加密密码
-    const saltRounds = 12;
-    const passwordHash = await bcrypt.hash(data.password, saltRounds);
-
-    // 生成邮箱验证令牌
-    const emailVerificationToken = uuidv4();
+    // 生成nonce
+    const nonce = uuidv4();
 
     // 创建用户
     const { data: user, error } = await supabase
       .from("users")
       .insert([
         {
-          email: data.email,
-          password_hash: passwordHash,
+          wallet_address: data.wallet_address,
           username: data.username,
-          display_name: data.display_name,
-          email_verification_token: emailVerificationToken,
+          nonce: nonce,
         },
       ])
       .select()
@@ -208,9 +209,6 @@ export async function registerUser(
       logger.error("注册用户失败", error);
       return { user: null, error: "Failed to create user" };
     }
-
-    // TODO: 发送邮箱验证邮件
-    // await sendEmailVerification(data.email, emailVerificationToken);
 
     return { user: user as User, error: null };
   } catch (error) {
@@ -402,6 +400,25 @@ export async function requestPasswordReset(
     resetExpires.setHours(resetExpires.getHours() + 1); // 1小时过期
 
     // 更新用户
+    // After successful verification, send welcome email
+    const { data: userData } = await supabase
+      .from("users")
+      .select("email, username")
+      .eq("id", user.id)
+      .single();
+
+    if (userData?.email) {
+      const welcomeResult = await sendWelcomeEmail(
+        userData.email,
+        userData.username
+      );
+      if (!welcomeResult.success) {
+        logger.warn("Failed to send welcome email", {
+          email: userData.email,
+          error: welcomeResult.error,
+        });
+      }
+    }
     await supabase
       .from("users")
       .update({
@@ -410,8 +427,12 @@ export async function requestPasswordReset(
       })
       .eq("id", user.id);
 
-    // TODO: 发送密码重置邮件
-    // await sendPasswordResetEmail(email, resetToken);
+    // Send password reset email
+    const emailResult = await sendPasswordResetEmail(email, resetToken);
+    if (!emailResult.success) {
+      logger.error("Failed to send password reset email", emailResult.error);
+      // Don't fail the request if email fails, but log it
+    }
 
     return { success: true, error: null };
   } catch (error) {
@@ -480,6 +501,25 @@ export async function verifyEmail(
     }
 
     // 更新用户
+    // After successful verification, send welcome email
+    const { data: userData } = await supabase
+      .from("users")
+      .select("email, username")
+      .eq("id", user.id)
+      .single();
+
+    if (userData?.email) {
+      const welcomeResult = await sendWelcomeEmail(
+        userData.email,
+        userData.username
+      );
+      if (!welcomeResult.success) {
+        logger.warn("Failed to send welcome email", {
+          email: userData.email,
+          error: welcomeResult.error,
+        });
+      }
+    }
     await supabase
       .from("users")
       .update({

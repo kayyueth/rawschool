@@ -1,9 +1,6 @@
 // 用户类型定义
 export interface User {
   id: string;
-  // 传统认证字段
-  email?: string;
-  email_verified?: boolean;
 
   // 钱包认证字段
   wallet_address?: string;
@@ -16,13 +13,12 @@ export interface User {
 
   // 用户信息字段
   username?: string;
-  display_name?: string;
-  avatar_url?: string;
-  bio?: string;
 
-  // 状态字段
-  is_active?: boolean;
-  last_login_at?: string;
+  // 邮箱验证字段
+  email_verified?: boolean;
+  email_verification_token?: string;
+  password_reset_token?: string;
+  password_reset_expires?: string;
 
   // 时间戳
   created_at: string;
@@ -53,10 +49,8 @@ export interface EmailAuthRequest {
 
 // 注册请求类型
 export interface RegisterRequest {
-  email: string;
-  password: string;
   username?: string;
-  display_name?: string;
+  wallet_address?: string;
 }
 
 // 社交认证请求类型
