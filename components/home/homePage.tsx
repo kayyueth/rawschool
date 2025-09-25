@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import ScrambledText from "./ScrambledText";
+import ApplicationModal, { ApplicationFormData } from "./ApplicationModal";
 
 interface HomePageProps {
   onApply: () => void;
@@ -12,6 +14,49 @@ export default function HomePage({
   onApply,
   isHeaderCollapsed = false,
 }: HomePageProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleApplyClick = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleApplicationSubmit = async (data: ApplicationFormData) => {
+    try {
+      const response = await fetch("/api/applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          bookName: data.bookName,
+          expectedReadWeeks: data.expectedReadWeeks,
+          recommendation: data.recommendation,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to submit application");
+      }
+
+      console.log("Application submitted successfully:", result);
+      // You can show a success message to the user here
+      alert("Application submitted successfully! We'll be in touch soon.");
+
+      // Call the original onApply callback
+      onApply();
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      alert("Failed to submit application. Please try again.");
+    }
+  };
   return (
     <div className="px-4 md:ml-20 md:mr-20">
       <div className="">
@@ -131,7 +176,7 @@ export default function HomePage({
         {/* Apply Button */}
         <div className="text-right pt-8">
           <Button
-            onClick={onApply}
+            onClick={handleApplyClick}
             size="lg"
             className="text-lg px-12 py-6 h-auto bg-black text-white hover:bg-black/90 transition-all duration-200 transform hover:scale-105"
           >
@@ -139,6 +184,13 @@ export default function HomePage({
           </Button>
         </div>
       </div>
+
+      {/* Application Modal */}
+      <ApplicationModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSubmit={handleApplicationSubmit}
+      />
     </div>
   );
 }

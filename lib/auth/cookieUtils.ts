@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
  * 获取cookie值
  */
 export async function getCookie(name: string): Promise<string | undefined> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   return cookieStore.get(name)?.value;
 }
 
@@ -24,7 +24,7 @@ export async function setCookie(
     sameSite?: "strict" | "lax" | "none";
   }
 ) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.set(name, value, options);
 }
 
@@ -32,7 +32,7 @@ export async function setCookie(
  * 删除cookie
  */
 export async function deleteCookie(name: string) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.delete(name);
 }
 
