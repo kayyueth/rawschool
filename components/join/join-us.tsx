@@ -35,7 +35,7 @@ export default function JoinUs() {
   };
 
   return (
-    <div className="md:flex md:mt-20 md:ml-20 justify-between">
+    <div className="md:flex md:ml-20 justify-between">
       {/* nav at left */}
       <div className="md:w-1/5 w-full md:ml-20 px-8 md:px-0">
         <Accordion

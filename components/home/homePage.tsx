@@ -7,13 +7,9 @@ import ApplicationModal, { ApplicationFormData } from "./ApplicationModal";
 
 interface HomePageProps {
   onApply: () => void;
-  isHeaderCollapsed?: boolean;
 }
 
-export default function HomePage({
-  onApply,
-  isHeaderCollapsed = false,
-}: HomePageProps) {
+export default function HomePage({ onApply }: HomePageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleApplyClick = () => {
@@ -63,11 +59,7 @@ export default function HomePage({
         {/* Current Semester Information */}
         <div className="space-y-6 text-xl">
           {/* Semester Enrollment Message */}
-          <div
-            className={`text-2xl text-center bg-black text-[#FCFADE] font-semibold p-4 ${
-              isHeaderCollapsed ? "block" : "hidden"
-            }`}
-          >
+          <div className="text-2xl text-center bg-black text-[#FCFADE] font-semibold p-4 hidden">
             ⧗ Semester 04 enrollment coming soon!
           </div>
 
@@ -97,15 +89,6 @@ export default function HomePage({
                 </ScrambledText>
               </p>
             </div>
-            {isHeaderCollapsed ? (
-              <div className="absolute right-24 top-[160px]">
-                <img
-                  src="/Logo.svg"
-                  alt="Logo"
-                  className="h-24 md:h-24 w-auto"
-                />
-              </div>
-            ) : null}
           </div>
 
           {/*Authors*/}
@@ -174,11 +157,11 @@ export default function HomePage({
         </div>
 
         {/* Apply Button */}
-        <div className="text-right pt-8">
+        <div className="text-right pt-4">
           <Button
             onClick={handleApplyClick}
             size="lg"
-            className="text-lg px-12 py-6 h-auto bg-black text-white hover:bg-black/90 transition-all duration-200 transform hover:scale-105"
+            className="text-lg px-8 py-4 h-auto bg-black text-white hover:bg-black/90 transition-all duration-200 transform hover:scale-105"
           >
             Apply
           </Button>

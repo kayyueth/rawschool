@@ -21,7 +21,6 @@ function HomeComponent() {
     "home" | "bookclub" | "join" | "wiki" | "wikiData" | "wikiDetail"
   >("home");
   const [selectedWikiTitle, setSelectedWikiTitle] = useState<string>("");
-  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(true); // Default to collapsed
 
   // Bookclub-specific state
   const [selectedBookData, setSelectedBookData] = useState<BookclubData | null>(
@@ -116,26 +115,16 @@ function HomeComponent() {
     }
   };
 
-  // Handle header collapsed state change
-  const handleHeaderCollapsedChange = (isCollapsed: boolean) => {
-    setIsHeaderCollapsed(isCollapsed);
-  };
-
   return (
     <div className="min-h-screen bg-[#FCFADE]">
       {/* Collapsible Header */}
       <CollapsibleHeader
         onViewChange={handleNavChange}
         onTitleClick={handleReturnHome}
-        onCollapsedChange={handleHeaderCollapsedChange}
       />
 
-      {/* Main Content with dynamic padding based on header state */}
-      <div
-        className={`transition-all duration-500 ease-in-out ${
-          isHeaderCollapsed ? "pt-20" : "pt-96"
-        }`}
-      >
+      {/* Main Content */}
+      <div className="pt-96 pb-8">
         {currentView === "join" ? (
           <JoinUs />
         ) : currentView === "wiki" ? (
@@ -154,7 +143,7 @@ function HomeComponent() {
           ) : (
             <div className="flex flex-col md:flex-row justify-start items-start px-4 md:px-12 lg:px-24 relative">
               {/* Clock and List View */}
-              <div className="w-full md:w-auto relative mt-10 hidden md:block">
+              <div className="w-full md:w-auto relative hidden md:block">
                 {/* Toggle and Controls */}
                 <div className="absolute z-10 flex items-center space-x-4 w-full">
                   <div className="flex items-center space-x-2">
@@ -216,10 +205,7 @@ function HomeComponent() {
           )
         ) : (
           // Default home page - completely independent
-          <HomePage
-            onApply={handleApply}
-            isHeaderCollapsed={isHeaderCollapsed}
-          />
+          <HomePage onApply={handleApply} />
         )}
       </div>
     </div>
