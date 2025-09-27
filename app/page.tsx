@@ -59,11 +59,6 @@ function HomeComponent() {
     }
   }, [currentView, monthData.length]);
 
-  const handleApply = () => {
-    // TODO: Implement apply functionality
-    console.log("Apply button clicked");
-  };
-
   // Handle wiki detail view
   const handleViewDetail = (title: string) => {
     setSelectedWikiTitle(title);
@@ -205,7 +200,7 @@ function HomeComponent() {
           )
         ) : (
           // Default home page - completely independent
-          <HomePage onApply={handleApply} />
+          <HomePage />
         )}
       </div>
     </div>

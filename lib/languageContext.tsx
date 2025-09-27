@@ -58,8 +58,12 @@ const translations: Translations = {
     zh: "AmbiNet 项目",
   },
   "join.us": {
-    en: "Join Us",
-    zh: "加入我们",
+    en: "About Us",
+    zh: "关于我们",
+  },
+  "join.bookclub": {
+    en: "Join Bookclub",
+    zh: "加入读书会",
   },
 };
 
