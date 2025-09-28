@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 interface ApplicationFormData {
   name: string;
   email: string;
+  selectedBook: string;
   bookName: string;
   expectedReadWeeks: string;
   recommendation: string;
@@ -25,6 +26,7 @@ export default function ApplyPage() {
   const [formData, setFormData] = useState<ApplicationFormData>({
     name: "",
     email: "",
+    selectedBook: "",
     bookName: "",
     expectedReadWeeks: "",
     recommendation: "",
@@ -46,21 +48,17 @@ export default function ApplyPage() {
       newErrors.email = "Please enter a valid email address";
     }
 
-    if (!formData.bookName.trim()) {
-      newErrors.bookName = "Book name is required";
+    if (!formData.selectedBook.trim()) {
+      newErrors.selectedBook = "Please select a book";
     }
 
-    if (!formData.expectedReadWeeks.trim()) {
-      newErrors.expectedReadWeeks = "Expected read weeks is required";
-    } else if (
-      isNaN(Number(formData.expectedReadWeeks)) ||
-      Number(formData.expectedReadWeeks) <= 0
+    // Book recommendation fields are now optional
+    if (
+      formData.bookName.trim() &&
+      (isNaN(Number(formData.expectedReadWeeks)) ||
+        Number(formData.expectedReadWeeks) <= 0)
     ) {
       newErrors.expectedReadWeeks = "Please enter a valid number of weeks";
-    }
-
-    if (!formData.recommendation.trim()) {
-      newErrors.recommendation = "Recommendation is required";
     }
 
     setErrors(newErrors);
@@ -96,6 +94,7 @@ export default function ApplyPage() {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
+          selectedBook: formData.selectedBook,
           bookName: formData.bookName,
           expectedReadWeeks: formData.expectedReadWeeks,
           recommendation: formData.recommendation,
@@ -115,6 +114,7 @@ export default function ApplyPage() {
       setFormData({
         name: "",
         email: "",
+        selectedBook: "",
         bookName: "",
         expectedReadWeeks: "",
         recommendation: "",
@@ -133,7 +133,7 @@ export default function ApplyPage() {
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-black mb-4">
-            Join Our Book Club
+            Join Raw School Bookclub
           </h1>
           <p className="text-lg text-gray-700">
             Apply to join our peer-to-peer book club. Please fill out the form
@@ -198,18 +198,66 @@ export default function ApplyPage() {
                     )}
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="selectedBook" className="text-sm font-medium">
+                    Select Book to Join *
+                  </Label>
+                  <select
+                    id="selectedBook"
+                    value={formData.selectedBook}
+                    onChange={(e) =>
+                      handleInputChange("selectedBook", e.target.value)
+                    }
+                    className={`w-full p-3 border-2 border-gray-300 focus:border-black rounded-md bg-white ${
+                      errors.selectedBook ? "border-red-500" : ""
+                    }`}
+                  >
+                    <option value="">Choose a book...</option>
+                    <option value="《P2P共有资源宣言》米歇尔、瓦西里斯、亚历克斯">
+                      《P2P共有资源宣言》米歇尔、瓦西里斯、亚历克斯
+                    </option>
+                    <option value="《货币的非国家化》弗里德里希·哈耶克">
+                      《货币的非国家化》弗里德里希·哈耶克
+                    </option>
+                    <option value="《债:第一个5000年》大卫·格雷伯">
+                      《债:第一个5000年》大卫·格雷伯
+                    </option>
+                    <option value="《The Bitcoin Standard: The decentralized Alternative to Central Banking》Saifedean Ammous">
+                      《The Bitcoin Standard: The decentralized Alternative to
+                      Central Banking》Saifedean Ammous
+                    </option>
+                    <option value="《Cypherpunk Ethics: Radical Ethics for the Digital Age》Patrick D. Anderson">
+                      《Cypherpunk Ethics: Radical Ethics for the Digital
+                      Age》Patrick D. Anderson
+                    </option>
+                    <option value="《Tokens: The future of money in the age of the platform》Rachel O'Dwyer">
+                      《Tokens: The future of money in the age of the
+                      platform》Rachel O'Dwyer
+                    </option>
+                    <option value="《Blockchain Radicals: How capitalism ruined crypto and how to fix it》Joshua Dávila">
+                      《Blockchain Radicals: How capitalism ruined crypto and
+                      how to fix it》Joshua Dávila
+                    </option>
+                  </select>
+                  {errors.selectedBook && (
+                    <p className="text-sm text-red-500">
+                      {errors.selectedBook}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Book Recommendation Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                  Book Recommendation
+                  Book Recommendation (Optional)
                 </h3>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="bookName" className="text-sm font-medium">
-                      Book Title *
+                      Book Title
                     </Label>
                     <Input
                       id="bookName"
@@ -233,7 +281,7 @@ export default function ApplyPage() {
                       htmlFor="expectedReadWeeks"
                       className="text-sm font-medium"
                     >
-                      Expected Reading Time (Weeks) *
+                      Expected Reading Time (Weeks)
                     </Label>
                     <Input
                       id="expectedReadWeeks"
@@ -265,7 +313,7 @@ export default function ApplyPage() {
                       htmlFor="recommendation"
                       className="text-sm font-medium"
                     >
-                      Why do you recommend this book? *
+                      Why do you recommend this book?
                     </Label>
                     <Textarea
                       id="recommendation"
@@ -306,11 +354,11 @@ export default function ApplyPage() {
 
         <div className="text-center mt-8">
           <Button
-            onClick={() => window.close()}
+            onClick={() => (window.location.href = "/")}
             variant="outline"
             className="border-2 border-black text-black hover:bg-black hover:text-white"
           >
-            Close Page
+            Back to Homepage
           </Button>
         </div>
       </div>

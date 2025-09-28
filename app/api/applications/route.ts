@@ -11,17 +11,21 @@ export async function POST(request: NextRequest) {
   return safeExecute(
     async () => {
       const body = await request.json();
-      const { name, email, bookName, expectedReadWeeks, recommendation } = body;
+      const {
+        name,
+        email,
+        selectedBook,
+        bookName,
+        expectedReadWeeks,
+        recommendation,
+      } = body;
 
       // Validate required fields
-      if (
-        !name ||
-        !email ||
-        !bookName ||
-        !expectedReadWeeks ||
-        !recommendation
-      ) {
-        return createErrorResponse("All fields are required", 400);
+      if (!name || !email || !selectedBook) {
+        return createErrorResponse(
+          "Name, email, and selected book are required",
+          400
+        );
       }
 
       // Validate email format
@@ -30,21 +34,25 @@ export async function POST(request: NextRequest) {
         return createErrorResponse("Invalid email format", 400);
       }
 
-      // Validate expected read weeks
-      const weeks = parseInt(expectedReadWeeks);
-      if (isNaN(weeks) || weeks <= 0 || weeks > 52) {
-        return createErrorResponse(
-          "Expected read weeks must be between 1 and 52",
-          400
-        );
+      // Validate expected read weeks (only if provided)
+      let weeks = null;
+      if (expectedReadWeeks && expectedReadWeeks.trim()) {
+        weeks = parseInt(expectedReadWeeks);
+        if (isNaN(weeks) || weeks <= 0 || weeks > 52) {
+          return createErrorResponse(
+            "Expected read weeks must be between 1 and 52",
+            400
+          );
+        }
       }
 
       const application = {
         name,
         email,
-        book_name: bookName,
-        expected_read_weeks: weeks,
-        recommendation,
+        selected_book: selectedBook,
+        book_name: bookName || undefined,
+        expected_read_weeks: weeks || undefined,
+        recommendation: recommendation || undefined,
       };
 
       const {

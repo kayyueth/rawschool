@@ -7,9 +7,10 @@ export interface BookClubApplication {
   id?: string;
   name: string;
   email: string;
-  book_name: string;
-  expected_read_weeks: number;
-  recommendation: string;
+  selected_book: string;
+  book_name?: string;
+  expected_read_weeks?: number;
+  recommendation?: string;
   status?: "pending" | "approved" | "rejected" | "waitlisted";
   admin_notes?: string;
   reviewed_by?: string;
@@ -117,6 +118,7 @@ async function sendApplicationNotificationEmail(
       id: application.id,
       name: application.name,
       email: application.email,
+      selectedBook: application.selected_book,
       book: application.book_name,
     });
 
